@@ -3,12 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROBAT</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-mMKfq1yV37c9gbhHZaJiS4I9p3beO/Pwkdfnmsi7umw=' 'sha256-Y7+hPHzFWRN3rF4LP8w71APr7CXl+msR33eOOV6hvYk='; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://gwrgsucqiyhtsfgbfcxz.supabase.co; form-action 'self'; base-uri 'self'; object-src 'none'; manifest-src 'self'">
+<title>ROBAT — Performance Gymwear</title>
+<meta name="description" content="ROBAT is a premium performance gymwear brand. Performance built for training. Designed for everything beyond it.">
+<meta name="robots" content="index, follow">
+<!--
+  Canonical / Open Graph / Twitter URLs below use relative paths.
+  Once ROBAT_CONFIG.brand.domain (in scripts/config.js) is confirmed,
+  replace them with absolute URLs, e.g.:
+  <link rel="canonical" href="https://robatfit.com/">
+  and set og:url to the same absolute address. Search engines and
+  social unfurlers generally require absolute URLs for these tags.
+-->
+<meta property="og:site_name" content="ROBAT">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ROBAT — Performance Gymwear">
+<meta property="og:description" content="Performance built for training. Designed for everything beyond it.">
+<meta property="og:image" content="images/home-hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ROBAT — Performance Gymwear">
+<meta name="twitter:description" content="Performance built for training. Designed for everything beyond it.">
+<meta name="twitter:image" content="images/home-hero.jpg">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="images/favicon-192.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "ROBAT",
+  "url": "./",
+  "logo": "images/logo-black.png",
+  "sameAs": ["https://www.instagram.com/robatfit"],
+  "email": "info@robatfit.com"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "ROBAT",
+  "url": "./"
+}
+</script>
+<!--
+  No Product/Offer structured data is included site-wide: per the
+  business rules in scripts/config.js, confirmed price, currency,
+  availability and a stable canonical product URL are all required
+  before Product/Offer schema can be added truthfully. Add it once
+  those are set (see docs/SEO.md).
+-->
 </head>
 <body>
+<noscript>
+  <div style="padding:32px;font-family:sans-serif;max-width:60ch;margin:0 auto;">
+    <h1>ROBAT — Performance Gymwear</h1>
+    <p>This site works best with JavaScript enabled, which powers navigation, the cart, checkout and animations. With JavaScript off, you can still reach ROBAT directly:</p>
+    <p>Email: <a href="mailto:info@robatfit.com">info@robatfit.com</a><br>
+    WhatsApp: <a href="https://wa.me/2349060569412">+234 906 056 9412</a><br>
+    Instagram: <a href="https://www.instagram.com/robatfit">@robatfit</a></p>
+  </div>
+</noscript>
 <div id="app"></div>
+<script src="config.js"></script>
+<script src="store.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

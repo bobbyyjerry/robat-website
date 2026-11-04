@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROBAT Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://gwrgsucqiyhtsfgbfcxz.supabase.co; form-action 'none'; base-uri 'self'; object-src 'none'">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin">
+<a href="#admin-main" class="skip-link">Skip to content</a>
+<header class="admin-bar">
+  <span class="wordmark"><span>ROBAT</span> <span class="admin-tag">Admin</span></span>
+  <div id="admin-user" class="admin-user"></div>
+</header>
+<main id="admin-main" tabindex="-1">
+  <p id="admin-status" class="admin-status" role="status" aria-live="polite"></p>
+  <div id="admin-root"><noscript>This page needs JavaScript.</noscript></div>
+</main>
+<script src="config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

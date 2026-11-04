@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# TODO: once ROBAT_CONFIG.brand.domain (config.js) is confirmed and the
+# site is deployed, replace the line below with the real absolute URL,
+# e.g. https://robatfit.com/sitemap.xml
+Sitemap: /sitemap.xml

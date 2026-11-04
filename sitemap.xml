@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  This site currently uses hash-based client-side routing
+  (e.g. "#/shop"), and most crawlers ignore everything after a "#" in
+  a URL — they only ever see the one document below. Listing the
+  individual "#/..." routes here would not give them real, separately
+  indexable URLs, so only the root is listed until the site is
+  rebuilt with real static per-route URLs (see the "SEO + real
+  routing" item in the engineering report). Replace the placeholder
+  domain once ROBAT_CONFIG.brand.domain (config.js) is confirmed.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://REPLACE-WITH-CONFIRMED-DOMAIN/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

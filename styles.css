@@ -16,9 +16,9 @@
     --hairline-strong:rgba(43,32,19,0.28);
     --paper:#2a2013;
     --paper-dim:#5b4b34;
-    --silver:#8a7452;
-    --steel:#a08b63;
-    --accent:#a85a34;
+    --silver:#756245;
+    --steel:#706145;
+    --accent:#97512e;
     --radius:2px;
     --nav-h:64px;
     --disp:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;
@@ -89,10 +89,6 @@
      independent of the page's dark-on-sand text colors. */
   .visual{position:relative; overflow:hidden; background:#4a3626; border:1px solid var(--hairline);
     --v-fg:#f3ead4; --v-fg-dim:rgba(243,234,212,.72);}
-  .visual.tone-a{background:radial-gradient(120% 140% at 18% 0%, #8a6a49 0%, #3f2c1c 55%), linear-gradient(160deg,#6b4e35,#2e2015);}
-  .visual.tone-b{background:radial-gradient(110% 130% at 82% 100%, #9c6a45 0%, #402a1a 60%), linear-gradient(200deg,#7a5738,#2a1c11);}
-  .visual.tone-c{background:repeating-linear-gradient(45deg, #5a4230 0 2px, #6b5038 2px 5px), radial-gradient(100% 100% at 50% 30%, rgba(255,235,210,.08), transparent 60%);}
-  .visual.tone-d{background:radial-gradient(120% 120% at 50% 20%, #7a6142 0%, #33291a 60%), linear-gradient(170deg,#5c4a30,#281f13);}
   .visual::after{content:''; position:absolute; inset:0; opacity:.07; mix-blend-mode:overlay; pointer-events:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
   .visual .corner{position:absolute; width:16px; height:16px; border-color:var(--v-fg-dim); opacity:.6; pointer-events:none;}
@@ -103,12 +99,21 @@
   .visual-caption{position:absolute; left:12px; bottom:12px; right:36px; font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--v-fg); opacity:.85; text-transform:uppercase; line-height:1.4;}
   .visual.small .corner{width:11px; height:11px;}
   .visual.small .visual-caption{display:none;}
-  .visual.has-photo{background-size:cover; background-position:center;}
+  .visual img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
 
   /* ---------- reveal ----------
-     Content is always visible at rest — no opacity:0 gated behind
-     a scroll observer. .reveal is kept only as a marker class. */
+     Progressive enhancement: content is fully visible by default so a
+     no-JS visitor (or a crawler) sees everything immediately. Only
+     once JS has run and added .js-reveal-ready to <html> do .reveal
+     elements start hidden and fade in via IntersectionObserver as
+     they scroll into view (see initReveal()). Fully disabled under
+     prefers-reduced-motion. */
   .reveal{opacity:1; transform:none;}
+  html.js-reveal-ready .reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease;}
+  html.js-reveal-ready .reveal.in-view{opacity:1; transform:none;}
+  @media (prefers-reduced-motion:reduce){
+    html.js-reveal-ready .reveal{opacity:1; transform:none; transition:none;}
+  }
 
   /* ---------- hero ----------
      Sits on a deliberately dark clay .visual, so hero content uses
@@ -290,8 +295,25 @@
   .of-field label{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--steel);}
   .of-field input{background:transparent; border:1px solid var(--hairline-strong); color:var(--paper); padding:13px 14px; font-family:var(--body); font-size:14.5px; border-radius:var(--radius); width:100%;}
   .of-field input:focus{outline:none; border-color:var(--paper);}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .of-chip input:focus-visible + span{outline:2px solid var(--accent); outline-offset:2px;}
+  .skip-link{position:absolute; left:12px; top:-60px; z-index:1000; background:var(--paper); color:var(--ink); padding:12px 18px; font-family:var(--mono); font-size:13px; text-transform:uppercase; letter-spacing:.08em; border-radius:var(--radius); transition:top .15s ease;}
+  .skip-link:focus{top:12px;}
+  fieldset.of-group{border:0; margin:0; padding:0;}
+  legend.of-label{padding:0; float:left; width:100%;}
+  .visually-hidden{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+  .form-status{min-height:1.4em;}
+  @media (prefers-reduced-motion:reduce){ .reveal-io{transition:none !important;} }
   .of-note{font-family:var(--mono); font-size:12px; color:var(--silver); letter-spacing:.03em; margin-top:16px;}
+  .legal-notice{background:#f4e8c9; border:1px solid var(--hairline-strong); border-left:4px solid var(--accent); padding:14px 18px; margin-top:20px; font-size:14px; line-height:1.55;}
+  .legal-notice strong{display:block; margin-bottom:4px;}
+  .article-body code{font-family:var(--mono); font-size:.9em; background:var(--hairline); padding:1px 5px; border-radius:2px;}
   .of-msg{font-family:var(--mono); font-size:12px; letter-spacing:.05em; color:var(--paper-dim); min-height:16px; margin-top:12px;}
+  .of-msg.is-error{color:#8a2f13;}
+  .of-consent{margin-top:18px;}
+  .of-consent label{display:flex; align-items:flex-start; gap:10px; font-family:var(--body); font-size:14px; color:var(--paper); line-height:1.5; cursor:pointer;}
+  .of-consent input{margin-top:3px; width:18px; height:18px; accent-color:var(--paper); flex-shrink:0;}
+  .btn[aria-disabled="true"]{opacity:.6; cursor:not-allowed;}
   .product-gallery{display:grid; grid-template-columns:1.1fr 1fr; gap:2px; background:var(--hairline); border:1px solid var(--hairline); margin-top:8px;}
   .product-gallery .visual{border:0; aspect-ratio:auto;}
   .product-gallery .g-main{grid-column:1; grid-row:1 / -1; height:100%;}
@@ -409,3 +431,67 @@
   .not-found{padding:180px 0 120px; text-align:center;}
 
   main{min-height:60vh;}
+
+/* ---------- static 404.html (served directly by the host for a real
+   404, outside the SPA's own in-app "route not found" page) ---------- */
+.nf-wrap{min-height:100svh; display:flex; align-items:center; justify-content:center; text-align:center; padding:32px; background:var(--ink);}
+.nf-inner{max-width:52ch;}
+.nf-eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--paper-dim);}
+.nf-inner h1{font-family:var(--disp); font-size:clamp(2.2rem,6vw,3.6rem); text-transform:uppercase; margin-top:10px; color:var(--paper);}
+.nf-inner p{font-family:var(--body); color:var(--paper); margin-top:14px; line-height:1.6;}
+.nf-inner a{display:inline-block; margin-top:26px; font-family:var(--mono); font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink); background:var(--paper); padding:14px 28px; border-radius:var(--radius); text-decoration:none;}
+
+/* ============================================================
+   STORE — nav widgets, preorder panel, cart, checkout, order status
+   (uses the same tokens/classes as the rest of the site)
+   ============================================================ */
+.visually-hidden{position:absolute !important; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
+.nav-store{display:flex; align-items:center; gap:14px;}
+.cur-switch{display:inline-flex; border:1px solid var(--hairline-strong); border-radius:var(--radius); overflow:hidden;}
+.cur-switch button{background:transparent; border:0; padding:7px 10px; min-height:32px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--paper-dim);}
+.cur-switch button[aria-pressed="true"]{background:var(--paper); color:var(--ink);}
+.cart-link{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--paper); padding:8px 2px; min-height:32px;}
+.cart-count{display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--accent); color:var(--ink); font-size:11px;}
+@media (max-width:420px){ .nav-right{gap:8px;} .nav-store{gap:8px;} .cur-switch button{padding:7px 7px;} .wordmark{font-size:19px;} }
+
+.store-card-price{font-family:var(--mono); font-size:12.5px; letter-spacing:.04em; color:var(--paper-dim); margin:8px 0 0;}
+.price-was{color:var(--silver); font-weight:400;}
+.store-panel{max-width:620px; display:flex; flex-direction:column; gap:20px;}
+.store-price{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px;}
+.price-now{font-family:var(--disp); font-size:2.2rem; font-weight:800; line-height:1;}
+.badge{display:inline-block; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; padding:4px 8px; border:1px solid var(--accent); color:var(--accent); border-radius:2px;}
+.store-add{display:flex; flex-direction:column; gap:22px;}
+.link-btn{background:none; border:0; padding:4px; font:inherit; font-family:var(--mono); font-size:12px; color:var(--accent); text-decoration:underline; min-height:32px;}
+
+.cart-lines{list-style:none; margin:0; padding:0; border-top:1px solid var(--hairline);}
+.cart-line{display:grid; grid-template-columns:1fr auto auto; gap:16px; align-items:center; padding:18px 0; border-bottom:1px solid var(--hairline);}
+.cart-line-main{display:flex; flex-direction:column; gap:4px;}
+.cart-line-qty{display:flex; align-items:center; gap:10px;}
+.cart-line-qty input{width:70px; background:transparent; border:1px solid var(--hairline-strong); color:var(--paper); padding:9px 10px; border-radius:var(--radius); font-family:var(--body); font-size:14.5px;}
+.cart-line-price{font-family:var(--mono); min-width:80px; text-align:right;}
+@media (max-width:560px){ .cart-line{grid-template-columns:1fr auto;} .cart-line-qty{grid-column:1 / -1;} }
+.cart-total{display:flex; justify-content:space-between; align-items:baseline; padding:20px 0 6px; font-family:var(--mono); font-size:15px;}
+.cart-total strong{font-family:var(--disp); font-size:1.8rem;}
+
+.store-grid{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:48px; align-items:start;}
+@media (max-width:900px){ .store-grid{grid-template-columns:minmax(0,1fr); gap:32px;} .store-summary{order:-1;} }
+.store-grid > *{min-width:0;}
+.store-form fieldset,.store-form .of-row,.store-form .of-field{min-width:0;}
+@media (max-width:640px){ .store-form .of-row{grid-template-columns:minmax(0,1fr);} }
+.store-form{display:flex; flex-direction:column; gap:26px;}
+.store-form .of-field select,.store-form .of-field textarea{background:transparent; border:1px solid var(--hairline-strong); color:var(--paper); padding:13px 14px; font-family:var(--body); font-size:14.5px; border-radius:var(--radius); width:100%;}
+.store-form .of-field input:focus-visible,.store-form .of-field select:focus-visible,.store-form .of-field textarea:focus-visible,.cart-line-qty input:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.store-summary{border:1px solid var(--hairline-strong); padding:22px; border-radius:var(--radius); background:rgba(255,255,255,.28);}
+.sum-lines{list-style:none; margin:14px 0; padding:0; display:flex; flex-direction:column; gap:10px; font-size:14px;}
+.sum-lines li{display:flex; justify-content:space-between; gap:14px;}
+.sum-row{display:flex; justify-content:space-between; gap:14px; padding:8px 0; border-top:1px solid var(--hairline); font-size:14px;}
+.sum-total{font-size:16px; border-top:1px solid var(--paper);}
+.sum-total strong{font-family:var(--disp); font-size:1.8rem;}
+.is-error{color:#8a2f13;}
+.store-table{width:100%; border-collapse:collapse; margin:18px 0; font-size:14px;}
+.store-table th,.store-table td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--hairline);}
+.store-table th{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--steel);}
+.os-body{max-width:640px; display:flex; flex-direction:column; gap:18px; margin-top:18px;}
+.os-number{font-family:var(--mono); font-size:15px;}
+.os-summary{border:1px solid var(--hairline-strong); padding:20px; border-radius:var(--radius);}
+@media (prefers-reduced-motion:reduce){ .cart-count{transition:none;} }

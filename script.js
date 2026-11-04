@@ -1,6 +1,8 @@
 (function(){
 "use strict";
 
+
+
 /* ============================================================
    BRAND MARK — the actual ROBAT "R" logo (user-supplied),
    embedded as data URIs. Black variant for light/sand
@@ -39,15 +41,33 @@ var PHOTO_FULL_OUTFIT = "images/full-outfit.jpg";
    as a finished photograph; swap the markup in visual() for real
    <img> tags once photography is delivered.
    ============================================================ */
+function robatEscapeAttr(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 function visual(opts){
   opts = opts || {};
   if(!opts.photo){ return ""; }
   var cls = "visual has-photo" + (opts.className ? " " + opts.className : "") + (opts.small ? " small" : "");
-  var styleParts = ["background-image:url('" + opts.photo + "')"];
+  var styleParts = [];
   if(opts.ratio){ styleParts.push("aspect-ratio:" + opts.ratio); }
   if(opts.gridRow){ styleParts.push("grid-row:" + opts.gridRow); }
-  var style = ' style="' + styleParts.join(";") + '"';
+  var style = styleParts.length ? ' style="' + styleParts.join(";") + '"' : "";
+  var alt = robatEscapeAttr(opts.alt || opts.caption || "");
+  var loading = opts.eager ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"';
+  var imgTag = '<img src="' + opts.photo + '" alt="' + alt + '" decoding="async"' + loading + '>';
+  // When served from a real file path (the deployable multi-file
+  // site) rather than an inlined data: URI (the single-file preview),
+  // prefer a matching pre-generated .webp sibling via <picture>, with
+  // the original JPEG/PNG as the fallback source.
+  var isFilePath = opts.photo.indexOf("data:") !== 0;
+  var isJpgOrPng = /\.(jpe?g|png)$/i.test(opts.photo);
+  if(isFilePath && isJpgOrPng){
+    var webpPath = opts.photo.replace(/\.(jpe?g|png)$/i, ".webp");
+    imgTag = '<picture><source type="image/webp" srcset="' + webpPath + '">' + imgTag + '</picture>';
+  }
   return '<div class="' + cls + '"' + style + ' data-visual="1">' +
+    imgTag +
     '<span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
     '<span class="visual-caption">' + (opts.caption || "") + '</span>' +
     '</div>';
@@ -81,7 +101,7 @@ var ARTICLES = [
       "It would be faster to start with a silhouette. Pick a cut, pick a colorway, pick a logo placement, and work backward until something is ready to photograph. A lot of gymwear gets built exactly that way, and it is usually possible to tell — the garment looks right standing still and stops behaving the moment a body starts moving through a real range of motion.",
       "We start further back than that, with the fabric itself: how it stretches, how much of that stretch it gives back after the two-hundredth rep instead of the first, how it manages heat and moisture across a forty-five minute session rather than a five-minute fitting-room mirror. None of that is visible in a product photo. All of it is what a garment is actually judged on by the person wearing it.",
       "Fit and construction get layered on top of that foundation, not the other way around. A pattern is only as good as the material it is cut from, and a seam is only as strong as its weakest point under the specific stresses a squat, a pull-up, or a sprint actually put on it. Fabric first is slower. It is also the only order that produces a garment that still performs after the newness has worn off.",
-      "This is the same reason GENERA, our first generation of product, is still in development rather than already on the site. We would rather take the time to get the fabric right than ship a silhouette that only works in a photograph."
+      "That is also why GENERA, our first generation of product, is a limited preorder rather than a wide launch &mdash; fabric, fit and construction keep getting proven in real use even after the first pieces are in front of customers."
     ]
   },
   {
@@ -100,13 +120,13 @@ var ARTICLES = [
     slug: "why-no-products-yet",
     tag: "ENTRY 04",
     tone: "b",
-    title: "Why We Don't Have Products Yet",
-    dek: "The honest answer, and why we&#39;d rather give you that than a countdown timer.",
+    title: "Why GENERA Is A Preorder",
+    dek: "How GENERA is being released, and why it starts as a limited preorder.",
     body: [
-      "The easiest thing we could do right now is put a countdown clock on this page. Manufactured urgency is a well-worn playbook — it works, it drives signups, and it costs nothing to build. We are not doing it, and the reason is the same one behind every placeholder image on this site: we would rather show you exactly where things stand than dress up an unfinished process as a finished one.",
-      "Where things actually stand is this. GENERA, ROBAT&#39;s first generation of product, is in development. Fabric is being selected and tested. Patterns are being cut and worn. None of that is done in a way we would put our name on yet, so none of it is on this site pretending otherwise — every placeholder image says so plainly in its caption, and the product timeline gets the same treatment.",
-      "We understand this is a slower way to build a brand than launching first and fixing problems in public. It is also the only way we know to make sure the first thing you can actually buy from ROBAT holds up to the standard the rest of this site claims to have. A shirt is easy to ship. A shirt worth wearing after the fortieth wash takes longer, and we would rather take that time before asking for your money than after.",
-      "So this page will stay honest instead of exciting for a while longer. If that is frustrating, the Journal and the newsletter are the two places real updates land first — not a hype cycle, just what is actually true, when it becomes true."
+      "The easiest thing we could do is put a countdown clock on this page and a flash-sale banner next to it. Manufactured urgency is a well-worn playbook \u2014 it works, it drives signups, and it costs nothing to build. We are not doing it, and the reason is the same one behind every honest caption on this site: we would rather show you exactly where things stand than dress up an unfinished process as a finished one.",
+      "Where things actually stand is this. GENERA, ROBAT&#39;s first generation of product, is available as a limited preorder in the Shop, in Black only, with White and Sand coming soon. Preorder prices are lower than the original prices, and you pay securely online. Because it is a preorder, delivery timelines are confirmed after you order \u2014 we would rather tell you that plainly than promise a date we cannot yet keep.",
+      "A preorder is a slower way to sell than shipping from a warehouse shelf. It is also the way we know to make sure the first thing you actually receive from ROBAT holds up to the standard the rest of this site claims to have.",
+      "So this page will stay plain instead of hyped. The Shop, the Journal and the newsletter are the places real updates land first \u2014 not a hype cycle, just what is actually true, when it becomes true."
     ]
   },
   {
@@ -185,7 +205,7 @@ var VALUES = [
     slug: "craft", num: "02", title: "Craft",
     short: "Getting the fabric, fit and finishing right before anything ships.",
     body: [
-      "Craft is the reason GENERA is still in development rather than already for sale. It would be faster to ship a first collection based on how it looks in a lookbook. It is slower, and more honest, to hold it back until the fabric, fit and construction actually earn the ROBAT name.",
+      "Craft is the reason GENERA is a limited preorder rather than a wide, automated launch. It would be faster to ship a first collection based on how it looks in a lookbook and sell it with one click. It is slower, and more honest, to release in small numbers until the fabric, fit and construction have fully earned the ROBAT name.",
       "In practice, craft shows up in the details nobody outside the process ever sees &mdash; a flatlock seam chosen over a cheaper one because it holds up better under a loaded movement, a pattern re-cut because it looked right on paper but not on a real body in a real squat.",
       "It is a slower way to build a brand. We think it is the only way to build one that is still worth wearing after the newness wears off."
     ]
@@ -371,8 +391,8 @@ var FAQS = [
   {
     slug: "availability", category: "engineered", q: "Will ROBAT products be available to buy?",
     body: [
-      "Yes &mdash; GENERA, ROBAT&#39;s first generation of product, launches October 31, 2026. It is a limited, intentional first release rather than a wide launch, built the same slow way as everything else on this site.",
-      "The Journal and the newsletter are the two places real updates land first as the date gets closer &mdash; not a countdown clock, just what is actually true."
+      "Yes &mdash; GENERA, ROBAT&#39;s first generation of product, is available through the Shop as a limited preorder in Black, with White and Sand coming soon. You pay securely online through Paystack, and delivery timelines are confirmed after you order.",
+      "A wider, fully automated launch is targeted but not yet confirmed. The Journal and the newsletter are the two places real updates land first as that gets closer &mdash; not a countdown clock, just what is actually true."
     ]
   },
   {
@@ -392,18 +412,16 @@ var FAQS = [
   {
     slug: "launch-date", category: "contact", q: "When does ROBAT launch?",
     body: [
-      "31.10.2026",
-      "The beginning of something built differently.",
-      "ROBAT makes its first appearance with GENERA &mdash; the opening chapter of what&#39;s to come.",
-      "Limited. Intentional. Made to move.",
-      "This is only the beginning."
+      "GENERA, ROBAT&#39;s first generation of product, is available to preorder through the Shop &mdash; that part is not waiting on a date.",
+      "A full, wide launch is being targeted for later in 2026, but that date is not yet confirmed, so we are not printing it here as a promise. The Journal and the newsletter are where the confirmed date lands first, the moment it is actually locked in.",
+      "Limited. Intentional. Made to move &mdash; that part has not changed."
     ]
   },
   {
     slug: "international-shipping", category: "contact", q: "Do you ship internationally?",
     body: [
-      "Shipping details, rates and destinations have not been finalized yet, so they are confirmed directly rather than listed here as if they were settled. Placing an order through the Shop opens a WhatsApp message to ROBAT with your details, and shipping is confirmed with you personally from there.",
-      "Once GENERA is closer to launch, full shipping and availability details will be added here and to the Engineered page at the same time."
+      "We currently deliver within Nigeria only. Delivery fees are calculated automatically at checkout from your delivery state, and the full list is on the Shipping Policy page. Delivery timelines will be confirmed after you order.",
+      "International shipping is not available yet. When that changes, it will be announced here and on the Shipping Policy page at the same time."
     ]
   },
   {
@@ -435,9 +453,8 @@ var PRODUCTS = [
     sizes: ["M","L","XL","XXL","XXXL"],
     colors: [
       {name:"Black", available:true},
-      {name:"Sand", available:false},
       {name:"White", available:false},
-      {name:"Gray", available:false}
+      {name:"Sand", available:false}
     ],
     photo: PHOTO_SHIRT_WORN,
     gallery: [
@@ -459,9 +476,8 @@ var PRODUCTS = [
     sizes: ["M","L","XL","XXL","XXXL"],
     colors: [
       {name:"Black", available:true},
-      {name:"Sand", available:false},
       {name:"White", available:false},
-      {name:"Gray", available:false}
+      {name:"Sand", available:false}
     ],
     photo: PHOTO_SHORT_WORN,
     gallery: [
@@ -469,6 +485,28 @@ var PRODUCTS = [
       {photo: PHOTO_SHORT_FRONT, caption: "FRONT"},
       {photo: PHOTO_SHORT_BACK, caption: "BACK"},
       {photo: PHOTO_FULL_OUTFIT, caption: "THE FULL GENERA SET"}
+    ]
+  },
+  {
+    slug: "genera-complete-set",
+    name: "GENERA Complete Set",
+    tag: "GENERA \u2014 03",
+    short: "The Performance Shirt and Performance Short together \u2014 the full GENERA outfit in one order.",
+    body: [
+      "The Complete Set is the GENERA Performance Shirt and the GENERA Performance Short together, as one order \u2014 the full first generation of ROBAT product, built to be worn as a set.",
+      "Choose one size; it applies to both pieces. If you need a different size for each piece, order the Shirt and the Short separately."
+    ],
+    sizes: ["M","L","XL","XXL","XXXL"],
+    colors: [
+      {name:"Black", available:true},
+      {name:"White", available:false},
+      {name:"Sand", available:false}
+    ],
+    photo: PHOTO_FULL_OUTFIT,
+    gallery: [
+      {photo: PHOTO_FULL_OUTFIT, caption: "THE FULL GENERA SET"},
+      {photo: PHOTO_SHIRT_WORN, caption: "GENERA PERFORMANCE SHIRT \u2014 WORN"},
+      {photo: PHOTO_SHORT_WORN, caption: "GENERA PERFORMANCE SHORT \u2014 WORN"}
     ]
   }
 ];
@@ -536,21 +574,40 @@ function render(){
   } else if(productMatch && getProduct(productMatch[1])){
     var product = getProduct(productMatch[1]);
     html = pageProduct(product); setSEO(product.name, product.short);
+  } else if(route === "/cart"){
+    html = RobatStore.pageCart(); setSEO("Your Cart", "Review the items in your ROBAT cart.");
+  } else if(route === "/checkout"){
+    html = RobatStore.pageCheckout(); setSEO("Checkout", "Secure checkout for your ROBAT order, paid through Paystack.");
   } else if(route === "/contact"){
     html = pageContact(); setSEO("Contact", "Get in touch with ROBAT.");
   } else if(route === "/genera"){
     html = pageGenera(); setSEO("GENERA \u2014 Inside The Garment", "The material system behind GENERA, unlocked from the QR code inside your ROBAT garment.");
+  } else if(route === "/privacy"){
+    html = pagePrivacy(); setSEO("Privacy Policy", "How ROBAT collects, uses and protects your information.");
+  } else if(route === "/terms"){
+    html = pageTerms(); setSEO("Terms of Sale", "The terms that apply to orders placed with ROBAT FIT LTD.");
+  } else if(route === "/shipping-policy"){
+    html = pageShippingPolicy(); setSEO("Shipping Policy", "ROBAT delivery fees and delivery areas.");
+  } else if(route === "/returns-policy"){
+    html = pageReturnsPolicy(); setSEO("Returns & Refunds Policy", "ROBAT's approach to returns and refunds.");
+  } else if(route === "/accessibility"){
+    html = pageAccessibilityStatement(); setSEO("Accessibility Statement", "ROBAT's accessibility aims and how to report a barrier.");
   } else {
     html = pageNotFound(); setSEO("Not Found", "Page not found.");
   }
 
-  app.innerHTML = navHTML() + "<main>" + html + "</main>" + footerHTML();
+  app.innerHTML = navHTML() + "<main id=\"main-content\" tabindex=\"-1\">" + html + "</main>" + footerHTML();
   wireNav();
   wireNewsletterForms();
-  wireShopForms();
+  if(window.RobatStore){ RobatStore.mount(app); }
   window.scrollTo(0,0);
   initReveal();
   if(route === "/genera"){ initGeneraExperience(); }
+  var pageHeading = app.querySelector("main h1");
+  if(pageHeading){
+    if(!pageHeading.hasAttribute("tabindex")){ pageHeading.setAttribute("tabindex","-1"); }
+    pageHeading.focus({preventScroll:true});
+  }
 }
 
 /* ============================================================
@@ -563,16 +620,18 @@ function navHTML(){
     return '<a href="#' + href + '" class="' + active.trim() + '">' + label + '</a>';
   }
   return '' +
+  '<a href="#main-content" class="skip-link">Skip to content</a>' +
   '<header id="nav"><div class="wrap row">' +
     '<a href="#/" class="wordmark"><img class="mark" src="' + MARK_BLACK + '" alt=""><span>ROBAT</span></a>' +
-    '<nav class="nav-links">' + a("/shop","Shop") + a("/about","About") + a("/engineered","Engineered") + a("/journal","Journal") + a("/contact","Contact") + '</nav>' +
+    '<nav class="nav-links" aria-label="Primary">' + a("/shop","Shop") + a("/about","About") + a("/engineered","Engineered") + a("/journal","Journal") + a("/contact","Contact") + '</nav>' +
     '<div class="nav-right">' +
-      '<button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>' +
+      (window.RobatStore ? RobatStore.navHTML() : '') +
+      '<button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button>' +
     '</div>' +
   '</div></header>' +
-  '<div id="mobile-menu">' +
-    '<a href="#/shop">Shop</a><a href="#/about">About</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a><a href="#/contact">Contact</a>' +
-  '</div>';
+  '<nav id="mobile-menu" aria-label="Mobile" aria-hidden="true">' +
+    '<a href="#/shop">Shop</a><a href="#/about">About</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a><a href="#/contact">Contact</a><a href="#/cart">Cart</a>' +
+  '</nav>';
 }
 
 function footerHTML(){
@@ -585,16 +644,48 @@ function footerHTML(){
       '</div>' +
       '<div><h4>Brand</h4><a href="#/shop">Shop</a><a href="#/about">About ROBAT</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a></div>' +
       '<div><h4>Get In Touch</h4><a href="#/contact">Contact</a><a href="#/journal">Latest Notes</a></div>' +
+      '<div><h4>Legal</h4><a href="#/privacy">Privacy Policy</a><a href="#/terms">Terms of Sale</a><a href="#/shipping-policy">Shipping Policy</a><a href="#/returns-policy">Returns &amp; Refunds</a><a href="#/accessibility">Accessibility</a></div>' +
     '</div>' +
-    '<div class="foot-bottom"><span>&copy; ' + new Date().getFullYear() + ' ROBAT. ALL RIGHTS RESERVED.</span><span>PEOPLE. PROGRESS. PURPOSE.</span></div>' +
+    '<div class="foot-bottom"><span>&copy; ' + new Date().getFullYear() + ' ' + (ROBAT_CONFIG.brand.legalName || 'ROBAT') + '. ALL RIGHTS RESERVED.' + (ROBAT_CONFIG.brand.registrationNumber ? ' ' + ROBAT_CONFIG.brand.registrationNumber + '.' : '') + '</span><span>PEOPLE. PROGRESS. PURPOSE.</span></div>' +
   '</div></footer>';
 }
 
+function robatOpenMobileMenu(burger, menu){
+  menu.classList.add("open");
+  burger.setAttribute("aria-expanded", "true");
+  menu.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  var first = menu.querySelector("a");
+  if(first){ first.focus(); }
+  function trap(e){
+    if(e.key === "Escape"){ robatCloseMobileMenu(burger, menu); return; }
+    if(e.key !== "Tab"){ return; }
+    var focusable = menu.querySelectorAll("a");
+    if(!focusable.length){ return; }
+    var firstEl = focusable[0], lastEl = focusable[focusable.length - 1];
+    if(e.shiftKey && document.activeElement === firstEl){ e.preventDefault(); lastEl.focus(); }
+    else if(!e.shiftKey && document.activeElement === lastEl){ e.preventDefault(); firstEl.focus(); }
+  }
+  menu._robatTrap = trap;
+  menu.addEventListener("keydown", trap);
+}
+function robatCloseMobileMenu(burger, menu){
+  menu.classList.remove("open");
+  burger.setAttribute("aria-expanded", "false");
+  menu.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  if(menu._robatTrap){ menu.removeEventListener("keydown", menu._robatTrap); menu._robatTrap = null; }
+  burger.focus();
+}
 function wireNav(){
   var burger = document.getElementById("burger");
   var menu = document.getElementById("mobile-menu");
-  if(burger){ burger.onclick = function(){ menu.classList.toggle("open"); }; }
-  if(menu){ menu.querySelectorAll("a").forEach(function(a){ a.onclick = function(){ menu.classList.remove("open"); }; }); }
+  if(!burger || !menu){ return; }
+  burger.onclick = function(){
+    var isOpen = menu.classList.contains("open");
+    if(isOpen){ robatCloseMobileMenu(burger, menu); } else { robatOpenMobileMenu(burger, menu); }
+  };
+  menu.querySelectorAll("a").forEach(function(a){ a.onclick = function(){ robatCloseMobileMenu(burger, menu); }; });
 }
 
 /* Newsletter forms have no backend on a static site, so a submission
@@ -620,59 +711,6 @@ function wireNewsletterForms(){
   });
 }
 
-/* Static site, no backend and no payment processor yet: the order
-   form hands the full order \u2014 product, size, color, quantity and
-   shipping details \u2014 to ROBAT directly over WhatsApp, where price,
-   availability and payment are confirmed with the customer personally. */
-var ORDER_WHATSAPP_NUMBER = "2349060569412"; // +234 906 056 9412
-function wireShopForms(){
-  document.querySelectorAll(".order-form").forEach(function(form){
-    form.onsubmit = function(e){
-      e.preventDefault();
-      var msgEl = form.querySelector(".of-msg");
-      var fd = new FormData(form);
-      var size = fd.get("size");
-      var color = fd.get("color");
-      var qty = (fd.get("qty") || "1").toString().trim() || "1";
-      var fullName = (fd.get("fullName") || "").toString().trim();
-      var phone = (fd.get("phone") || "").toString().trim();
-      var email = (fd.get("email") || "").toString().trim();
-      var address = (fd.get("address") || "").toString().trim();
-      var city = (fd.get("city") || "").toString().trim();
-      var state = (fd.get("state") || "").toString().trim();
-      var postal = (fd.get("postal") || "").toString().trim();
-      var country = (fd.get("country") || "").toString().trim();
-
-      if(!size || !color || !fullName || !phone || !address || !city || !state || !country){
-        if(msgEl){ msgEl.textContent = "Please fill in every required field before continuing."; }
-        return;
-      }
-
-      var product = form.getAttribute("data-product") || "ROBAT Product";
-      var lines = [
-        "Hi ROBAT, I'd like to place an order:",
-        "",
-        "Product: " + product,
-        "Size: " + size,
-        "Color: " + color,
-        "Quantity: " + qty,
-        "",
-        "Shipping to:",
-        fullName,
-        phone,
-        address,
-        city + ", " + state + (postal ? " " + postal : ""),
-        country
-      ];
-      if(email){ lines.push("", "Email: " + email); }
-
-      var waLink = "https://wa.me/" + ORDER_WHATSAPP_NUMBER + "?text=" + encodeURIComponent(lines.join("\n"));
-      if(msgEl){ msgEl.textContent = "Opening WhatsApp to confirm your order..."; }
-      window.location.href = waLink;
-    };
-  });
-}
-
 /* ============================================================
    REUSABLE SECTION BUILDERS
    ============================================================ */
@@ -680,9 +718,9 @@ function newsletterHTML(){
   return '' +
   '<section><div class="wrap"><div class="newsletter reveal"><div class="inner">' +
     '<h2>Stay Close To The Build</h2>' +
-    '<p>No product to sell you yet — just an occasional note when the engineering, the philosophy, or the Journal moves forward. No spam, unsubscribe anytime.</p>' +
-    '<form class="newsletter-form"><input type="email" placeholder="you@email.com" aria-label="Email address" required><button class="btn" type="submit">Notify Me</button></form>' +
-    '<div class="newsletter-msg"></div>' +
+    '<p>GENERA is available to preorder in the Shop. This list is for occasional notes when the engineering, the philosophy, or the Journal moves forward \u2014 no spam, and you can ask to be removed at any time by emailing us.</p>' +
+    '<form class="newsletter-form"><label class="visually-hidden" for="newsletter-email">Email address</label><input id="newsletter-email" type="email" placeholder="you@email.com" required><button class="btn" type="submit">Notify Me</button></form>' +
+    '<div class="newsletter-msg form-status" role="status" aria-live="polite"></div>' +
   '</div></div></div></section>';
 }
 
@@ -692,7 +730,7 @@ function newsletterHTML(){
 function pageHome(){
   return '' +
   '<section class="hero">' +
-    visual({tone:"a", caption:"CAMPAIGN — ROBAT STUDIO", photo:PHOTO_HOME_HERO}) +
+    visual({eager:true, alt:"ROBAT athlete training in GENERA performance wear, campaign photograph.", caption:"CAMPAIGN — ROBAT STUDIO", photo:PHOTO_HOME_HERO}) +
     '<div class="hero-inner">' +
       '<img class="hero-mark" src="' + MARK_CREAM + '" alt="" aria-hidden="true">' +
       '<div class="wrap">' +
@@ -725,19 +763,19 @@ function pageHome(){
 
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="editorial-strip reveal">' +
-      visual({tone:"d", caption:"TRAINING — ROBAT ATHLETES", photo:PHOTO_EDITORIAL_TRAINING}) +
-      visual({tone:"b", caption:"LIFESTYLE — ROBAT BEYOND THE GYM", photo:PHOTO_EDITORIAL_LIFESTYLE}) +
+      visual({alt:"ROBAT athlete mid-training session.", caption:"TRAINING — ROBAT ATHLETES", photo:PHOTO_EDITORIAL_TRAINING}) +
+      visual({alt:"ROBAT worn outside the gym, everyday lifestyle photograph.", caption:"LIFESTYLE — ROBAT BEYOND THE GYM", photo:PHOTO_EDITORIAL_LIFESTYLE}) +
     '</div>' +
   '</div></section>' +
 
   '<section class="statement" style="padding:88px 0;"><div class="wrap reveal">' +
-    '<blockquote>We&#39;d rather show you an honest placeholder than a finished lie.</blockquote>' +
+    '<blockquote>We&#39;d rather show you exactly where things stand than dress it up as finished.</blockquote>' +
     '<cite>— The ROBAT Design Principle</cite>' +
   '</div></section>' +
 
   '<section><div class="wrap">' +
     '<div class="split rev reveal">' +
-      visual({tone:"b", caption:"BRAND — ROBAT CAMPAIGN", ratio:"4/5", photo:PHOTO_BRAND_CAMPAIGN}) +
+      visual({alt:"ROBAT brand campaign photograph.", caption:"BRAND — ROBAT CAMPAIGN", ratio:"4/5", photo:PHOTO_BRAND_CAMPAIGN}) +
       '<div><div class="eyebrow">People. Progress. Purpose.</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">This Is ROBAT</h2>' +
       '<p class="lead" style="margin-top:16px;">A premium performance gymwear brand built around training, movement and progress — for the gym, and for everything after it.</p>' +
       '<a href="#/about" class="btn ghost" style="margin-top:24px;">About ROBAT</a></div>' +
@@ -770,7 +808,7 @@ function journalCard(art){
 function pageAbout(){
   return '' +
   '<section class="hero" style="min-height:60vh;">' +
-    visual({tone:"d", caption:"EDITORIAL — ROBAT ATHLETES", photo:PHOTO_ABOUT_HERO}) +
+    visual({alt:"ROBAT athletes, editorial photograph for the About page.", caption:"EDITORIAL — ROBAT ATHLETES", photo:PHOTO_ABOUT_HERO}) +
     '<div class="hero-inner"><div class="wrap">' +
       '<div class="hero-eyebrow">About ROBAT</div>' +
       '<h1 style="font-size:clamp(2.4rem,6.5vw,5rem);">PEOPLE. PROGRESS.<br>PURPOSE.</h1>' +
@@ -787,7 +825,7 @@ function pageAbout(){
       '<p class="lead" style="margin-top:16px;">When I began working out, the gym became more than just a place to train. It became a space for discipline, confidence, self-expression, and growth. As my passion for fitness grew, so did my interest in what I wore while training. I wanted gym wear that didn&#39;t just perform well, but looked good — something I could feel confident wearing both inside and outside the gym.</p>' +
       '<p class="lead" style="margin-top:16px;">That idea became the foundation of ROBAT: bringing fitness and fashion together.</p>' +
       '<p class="lead" style="margin-top:16px;">But I wanted ROBAT to go beyond clothing. We live in a generation where technology is constantly changing the way we interact with the world around us, and that inspired another part of the brand.</p>' +
-      '<p class="lead" style="margin-top:16px;">Every ROBAT piece is designed to have its own identity. Through the QR code attached to the wear, you can scan your piece and discover more about it — its name, design, inspiration, and the story behind what you&#39;re wearing. It turns a piece of gym wear into something you can interact with.</p>' +
+      '<p class="lead" style="margin-top:16px;">Every ROBAT piece is designed to have its own identity. Through the QR code inside the garment, you can scan your piece and discover more about it — its name, design, inspiration, and the story behind what you&#39;re wearing. It turns a piece of gym wear into something you can interact with.</p>' +
       '<p class="lead" style="margin-top:16px;">For me, ROBAT represents progression — physically, mentally, creatively, and technologically.</p>' +
       '<p class="lead" style="margin-top:16px;">It&#39;s for people who want to become stronger without losing their sense of style. For people who understand that discipline isn&#39;t only about what happens during a workout; it&#39;s about the mindset you carry into everything you do.</p>' +
       '<p style="margin-top:28px;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(1.1rem,2vw,1.5rem);color:var(--paper);">ROBAT — Discipline Builds Freedom.</p>' +
@@ -796,13 +834,13 @@ function pageAbout(){
 
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="split reveal">' +
-      visual({tone:"a", caption:"TRAINING — ROBAT ATHLETES", photo:PHOTO_ABOUT_PEOPLE}) +
+      visual({alt:"ROBAT athletes training together.", caption:"TRAINING — ROBAT ATHLETES", photo:PHOTO_ABOUT_PEOPLE}) +
       '<div><div class="eyebrow">01 — People</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">People</h2><p class="lead" style="margin-top:16px;">ROBAT is built around the people who train — the early mornings, the last set of the day, the quiet discipline in between. Every product starts with how they move, not how it photographs. <a href="#/about/people" class="link" style="margin-left:4px;">Read The People Page</a></p></div>' +
     '</div>' +
   '</div></section>' +
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="split rev reveal">' +
-      visual({tone:"b", caption:"MOVEMENT — PROGRESS IN TRAINING", photo:PHOTO_ABOUT_PROGRESS}) +
+      visual({alt:"Athlete in motion, representing progress in training.", caption:"MOVEMENT — PROGRESS IN TRAINING", photo:PHOTO_ABOUT_PROGRESS}) +
       '<div><div class="eyebrow">02 — Progress</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Progress</h2><p class="lead" style="margin-top:16px;">Progress is rarely loud. It&#39;s the extra rep, the better form, the slightly heavier plate. ROBAT is built for the version of you that&#39;s still being built. <a href="#/about/progress" class="link" style="margin-left:4px;">Read The Progress Page</a></p></div>' +
     '</div>' +
   '</div></section>' +
@@ -946,11 +984,11 @@ function pageContact(){
     '<div class="reveal" style="max-width:60ch;">' +
       '<div class="eyebrow">Contact</div>' +
       '<h1 style="font-size:clamp(2.1rem,4.6vw,3.4rem);text-transform:uppercase;margin-top:12px;">Get In Touch</h1>' +
-      '<p class="lead" style="margin-top:16px;">Questions about the brand, the engineering, or what&#39;s next — this is a front-end preview of ROBAT, so treat the details below as placeholders rather than a live inbox.</p>' +
+      '<p class="lead" style="margin-top:16px;">Questions about the brand, the engineering, GENERA, or an order you&#39;ve already placed \u2014 reach us directly at the inbox below, or on WhatsApp.</p>' +
       '<div class="info-list">' +
-        '<div class="row"><div class="k">General</div><div class="v">info@robatfit.com<span>The official ROBAT inbox — brand questions and everything else</span></div></div>' +
-        '<div class="row"><div class="k">Press</div><div class="v">info@robatfit.com<span>Media and interview requests</span></div></div>' +
-        '<div class="row"><div class="k">Wholesale</div><div class="v">info@robatfit.com<span>Stockist and partnership inquiries</span></div></div>' +
+        '<div class="row"><div class="k">General</div><div class="v"><a href="mailto:info@robatfit.com">info@robatfit.com</a><span>The official ROBAT inbox — brand questions and everything else</span></div></div>' +
+        '<div class="row"><div class="k">Press</div><div class="v"><a href="mailto:info@robatfit.com?subject=Press%20Inquiry">info@robatfit.com</a><span>Media and interview requests</span></div></div>' +
+        '<div class="row"><div class="k">Wholesale</div><div class="v"><a href="mailto:info@robatfit.com?subject=Wholesale%20Inquiry">info@robatfit.com</a><span>Stockist and partnership inquiries</span></div></div>' +
         '<div class="row"><div class="k">Follow</div><div class="v"><a class="social-link" href="https://www.instagram.com/robatfit?" target="_blank" rel="noopener noreferrer" aria-label="ROBAT on Instagram">' + IG_ICON + '<span>@robatfit on Instagram</span></a></div></div>' +
       '</div>' +
     '</div>' +
@@ -1090,6 +1128,7 @@ function productCard(p){
   return '<a href="#/shop/' + p.slug + '" class="journal-card">' +
     visual({tone: "a", caption: p.name.toUpperCase(), photo: p.photo || null}) +
     '<div class="eyebrow">' + p.tag + '</div><h3>' + p.name + '</h3><p>' + p.short + '</p>' +
+    '<p class="store-card-price">' + RobatStore.priceTagHTML(p.slug) + '</p>' +
     '<span class="link">Shop ' + p.name.replace("GENERA ", "") + '</span>' +
   '</a>';
 }
@@ -1111,25 +1150,10 @@ function pageShop(){
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="reveal" style="max-width:70ch;">' +
       '<div class="eyebrow">Availability</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Limited First Run</h2>' +
-      '<p class="lead" style="margin-top:16px;">GENERA launches October 31, 2026 in Black only, with additional colorways to follow. Pricing has not been finalized yet, so orders are confirmed directly rather than sold through an automated checkout \u2014 place an order below and the next step opens a WhatsApp message to ROBAT with everything filled in.</p>' +
+      '<p class="lead" style="margin-top:16px;">GENERA is available as a limited preorder, in Black only, with White and Sand coming soon. Preorder prices are lower than the original prices. You pay securely online through Paystack, and delivery timelines are confirmed after you order.</p>' +
       '<a href="#/faq/launch-date" class="link" style="display:inline-block;margin-top:22px;">More On The Launch</a>' +
     '</div>' +
   '</div></section>';
-}
-
-function productSizeChips(sizes){
-  return sizes.map(function(s, i){
-    return '<label class="of-chip"><input type="radio" name="size" value="' + s + '"' + (i === 0 ? " checked required" : "") + '><span>' + s + '</span></label>';
-  }).join("");
-}
-
-function productColorChips(colors){
-  return colors.map(function(c){
-    if(!c.available){
-      return '<label class="of-chip"><input type="radio" name="color" value="' + c.name + '" disabled><span>' + c.name + '<span class="soon">Coming Soon</span></span></label>';
-    }
-    return '<label class="of-chip"><input type="radio" name="color" value="' + c.name + '" checked required><span>' + c.name + '</span></label>';
-  }).join("");
 }
 
 function pageProduct(p){
@@ -1157,36 +1181,13 @@ function pageProduct(p){
 
   '<section style="padding-top:32px;"><div class="wrap">' +
     '<div class="article-body reveal">' + p.body.map(function(par){ return "<p>" + par + "</p>"; }).join("") + '</div>' +
-    '<p class="price-tag reveal">Price: To Be Announced \u2014 confirmed before GENERA launches on October 31, 2026.</p>' +
+    '<p class="price-tag reveal">' + RobatStore.priceTagHTML(p.slug) + '</p>' +
   '</div></section>' +
 
   '<section style="padding-top:8px;"><div class="wrap">' +
-    '<div class="section-head reveal"><div><div class="eyebrow">Place An Order</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">Reserve Yours</h2></div></div>' +
-    '<p class="lead reveal">Choose a size and color and fill in your shipping details. There is no online payment yet \u2014 continuing opens a WhatsApp message to ROBAT with your full order pre-filled, so price, availability and payment can be confirmed with you directly.</p>' +
-    '<form class="order-form reveal" data-product="' + p.name + '">' +
-      '<div class="of-group"><div class="of-label">Size</div><div class="of-options">' + productSizeChips(p.sizes) + '</div></div>' +
-      '<div class="of-group"><div class="of-label">Color</div><div class="of-options">' + productColorChips(p.colors) + '</div></div>' +
-      '<div class="of-field" style="max-width:140px;"><label>Quantity</label><input type="number" name="qty" min="1" max="10" value="1" required></div>' +
-      '<div class="of-group"><div class="of-label">Shipping Details</div>' +
-        '<div class="of-row">' +
-          '<div class="of-field"><label>Full Name</label><input type="text" name="fullName" autocomplete="name" required></div>' +
-          '<div class="of-field"><label>Phone Number</label><input type="tel" name="phone" autocomplete="tel" required></div>' +
-        '</div>' +
-        '<div class="of-row">' +
-          '<div class="of-field"><label>Email (Optional)</label><input type="email" name="email" autocomplete="email"></div>' +
-          '<div class="of-field"><label>Country</label><input type="text" name="country" autocomplete="country-name" required></div>' +
-        '</div>' +
-        '<div class="of-field"><label>Address Line</label><input type="text" name="address" autocomplete="street-address" required></div>' +
-        '<div class="of-row">' +
-          '<div class="of-field"><label>City</label><input type="text" name="city" autocomplete="address-level2" required></div>' +
-          '<div class="of-field"><label>State / Region</label><input type="text" name="state" autocomplete="address-level1" required></div>' +
-        '</div>' +
-        '<div class="of-field" style="max-width:220px;"><label>Postal Code</label><input type="text" name="postal" autocomplete="postal-code"></div>' +
-      '</div>' +
-      '<div><button type="submit" class="btn solid block">Continue To Payment</button>' +
-        '<p class="of-msg"></p>' +
-      '</div>' +
-    '</form>' +
+    '<div class="section-head reveal"><div><div class="eyebrow">Preorder</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">Order Yours</h2></div></div>' +
+    '<p class="lead reveal">Prices are shown in USD by default and you can switch to Naira at the top of the page. You pay in Naira (\u20A6) at checkout, securely through Paystack. Delivery timelines are confirmed after you order.</p>' +
+    '<div class="reveal">' + RobatStore.productPanelHTML(p.slug) + '</div>' +
   '</div></section>' +
 
   (others.length ?
@@ -1482,19 +1483,138 @@ function initGeneraExperience(){
   }
 }
 
+/* ============================================================
+   LEGAL / TRUST PAGES
+   ------------------------------------------------------------
+   Draft content only. Every page here carries a visible notice
+   that it has not been reviewed by a qualified lawyer in the
+   jurisdictions ROBAT operates and sells in. Do not present this
+   copy to customers as finalized legal advice or a finished
+   policy until that review has happened and ROBAT_CONFIG's
+   placeholder fields (legal name, address, currency, shipping,
+   returns, payment provider) are filled in.
+   ============================================================ */
+function legalReviewNotice(){
+  return '<div class="legal-notice" role="note"><strong>Draft — pending legal review.</strong> This page was drafted to reflect how the ROBAT site actually works today. It has not been reviewed by a qualified lawyer in the jurisdictions ROBAT operates and sells in, and must not be treated as finished legal advice or a final policy until that review happens.</div>';
+}
+function legalShell(eyebrow, title, bodyHtml){
+  return '' +
+  '<section style="padding-top:calc(var(--nav-h) + 56px);"><div class="wrap">' +
+    '<div class="reveal" style="max-width:70ch;">' +
+      '<div class="eyebrow">' + eyebrow + '</div>' +
+      '<h1 style="font-size:clamp(2rem,4.2vw,3rem);text-transform:uppercase;margin-top:12px;">' + title + '</h1>' +
+      legalReviewNotice() +
+      '<div class="article-body" style="margin-top:28px;">' + bodyHtml + '</div>' +
+    '</div>' +
+  '</div></section>';
+}
+function legalP(t){ return '<p>' + t + '</p>'; }
+function legalH2(t){ return '<h2 style="font-size:1.3rem;text-transform:uppercase;margin-top:36px;">' + t + '</h2>'; }
+
+function legalBusinessLine(){
+  var b = ROBAT_CONFIG.brand;
+  return legalP("<strong>" + (b.legalName || "ROBAT") + "</strong>" + (b.registrationNumber ? ", " + b.registrationNumber : "") + (b.address ? ", " + b.address : "") + ". Email: <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.");
+}
+
+function pagePrivacy(){
+  return legalShell("Legal", "Privacy Policy", '' +
+    legalH2("Who We Are") +
+    legalBusinessLine() +
+    legalH2("What We Collect") +
+    legalP("When you place an order we collect your name, email address, phone number, delivery address (street, city, state and any delivery notes), the items you ordered, and the payment reference and status of your payment. When you sign up for the newsletter, we collect the email address you provide.") +
+    legalP("Your card, bank or USSD payment details are entered on Paystack’s secure payment page. ROBAT does not see or store them.") +
+    legalP("To help prevent abuse of checkout, we store a one-way scrambled (hashed) form of your network address with your order. It is not used to identify you.") +
+    legalH2("Why We Collect It") +
+    legalP("To process and deliver your order, confirm your payment, contact you about it, keep a record of the sale, and prevent fraud and abuse. [TODO: have a qualified lawyer confirm the lawful basis for each purpose under applicable data protection law, including the Nigeria Data Protection Act 2023.]") +
+    legalH2("Who Handles It") +
+    legalP("Paystack processes your payment under its own terms and privacy notice. Order records are stored with our database provider, Supabase. Our website is hosted on GitHub Pages. [TODO: name any email or analytics provider once one is chosen — no analytics or tracking script runs on this site at the moment.]") +
+    legalH2("Retention") +
+    legalP("[TODO: confirm how long order records and newsletter sign-ups are kept, and document it here.]") +
+    legalH2("Your Rights") +
+    legalP("You can ask what information we hold about you, ask us to correct it, or ask us to delete it (where we are not required to keep it), by emailing <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.") +
+    legalH2("Contact") +
+    legalP("Privacy questions: <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.")
+  );
+}
+
+function pageTerms(){
+  return legalShell("Legal", "Terms of Sale", '' +
+    legalH2("Who You Are Buying From") +
+    legalBusinessLine() +
+    legalH2("Preorders") +
+    legalP("GENERA is currently offered as a limited preorder. The preorder price is shown next to the original price. Delivery timelines are confirmed after you order. Colours marked “Coming Soon” cannot be ordered yet.") +
+    legalH2("Prices And Currency") +
+    legalP("Prices are shown in US dollars (USD) by default and can be switched to Nigerian Naira (₦). Payment is always taken in Naira. USD prices are converted at an exchange rate set by ROBAT and shown at checkout, which ROBAT may update from time to time. The total in Naira shown on the checkout page just before you pay is the amount you will be charged.") +
+    legalH2("Delivery") +
+    legalP("We currently deliver within Nigeria only. Delivery fees depend on your delivery state and are added automatically at checkout. See the Shipping Policy for the current list.") +
+    legalH2("Payment") +
+    legalP("Payments are processed by Paystack. Your order is confirmed only after Paystack confirms that payment was successful and ROBAT has verified it; you will see your order number on the confirmation page. Items in your checkout are held for a short time (about 30 minutes) while you pay; if payment is not completed in that time, the hold is released.") +
+    legalH2("Returns And Refunds") +
+    legalP("See the Returns &amp; Refunds Policy. [TODO: ROBAT to finalise the policy; it is managed from the admin page.]") +
+    legalH2("Governing Law") +
+    legalP("[TODO: confirm the jurisdiction whose law governs these terms, and have this page reviewed by a qualified lawyer there.]")
+  );
+}
+
+function pageShippingPolicy(){
+  return legalShell("Legal", "Shipping Policy", '' +
+    legalH2("Where We Deliver") +
+    legalP("We currently deliver within Nigeria only.") +
+    legalH2("Fees And Timelines") +
+    RobatStore.shippingHTML()
+  );
+}
+
+function pageReturnsPolicy(){
+  return legalShell("Legal", "Returns &amp; Refunds Policy", '' +
+    RobatStore.policyHTML() +
+    legalP("Questions about a return or refund: <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.")
+  );
+}
+
+function pageAccessibilityStatement(){
+  return legalShell("Legal", "Accessibility Statement", '' +
+    legalH2("Our Aim") +
+    legalP("ROBAT aims to meet WCAG 2.2 Level AA across this site: semantic landmarks and headings, a skip-to-content link, keyboard-operable navigation and forms, visible focus indicators, labelled form fields, live status announcements for form outcomes, and colors chosen to meet 4.5:1 contrast for normal text.") +
+    legalH2("Known Limitations") +
+    legalP("This site currently uses hash-based navigation (URLs like <code>#/shop</code>) rather than fully static per-page URLs, which limits how some assistive tools and search engines index individual pages. [TODO: revisit once real per-route URLs ship \\u2014 see the SEO/routing item in the engineering report.]") +
+    legalH2("Feedback") +
+    legalP("If you hit an accessibility barrier anywhere on this site, tell us at <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a> and we'll work to fix it.")
+  );
+}
+
 function pageNotFound(){
-  return '<section class="not-found"><div class="wrap"><div class="eyebrow">404</div><h2 style="text-transform:uppercase;margin-top:10px;">Page Not Found</h2><a href="#/" class="btn solid" style="margin-top:24px;">Back To ROBAT</a></div></section>';
+  return '<section class="not-found" role="alert"><div class="wrap"><div class="eyebrow">404</div><h1 style="text-transform:uppercase;margin-top:10px;">Page Not Found</h1><p class="lead" style="margin-top:12px;">That page doesn&#39;t exist \u2014 it may have moved or the link may be out of date.</p><a href="#/" class="btn solid" style="margin-top:24px;">Back To ROBAT</a></div></section>';
 }
 
 /* ============================================================
-   REVEAL — intentionally a no-op. Content renders fully visible
-   at rest on every route; nothing depends on scroll or observer
-   timing to become readable.
+   REVEAL — real scroll-triggered fade-in, sitewide, for every
+   element carrying the .reveal class. Progressive enhancement: see
+   the matching CSS comment above. Re-run on every render() since
+   each route swaps in a fresh set of .reveal elements.
    ============================================================ */
-function initReveal(){}
+var ROBAT_REVEAL_OBSERVER = null;
+function initReveal(){
+  document.documentElement.classList.add("js-reveal-ready");
+  var els = document.querySelectorAll(".reveal");
+  var reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  if(ROBAT_REVEAL_OBSERVER){ ROBAT_REVEAL_OBSERVER.disconnect(); ROBAT_REVEAL_OBSERVER = null; }
+  if(reduced || !("IntersectionObserver" in window)){
+    els.forEach(function(el){ el.classList.add("in-view"); });
+    return;
+  }
+  ROBAT_REVEAL_OBSERVER = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add("in-view");
+        ROBAT_REVEAL_OBSERVER.unobserve(entry.target);
+      }
+    });
+  }, {threshold:0.15, rootMargin:"0px 0px -6% 0px"});
+  els.forEach(function(el){ ROBAT_REVEAL_OBSERVER.observe(el); });
+}
 
 window.addEventListener("hashchange", render);
-window.addEventListener("DOMContentLoaded", render);
 render();
 
 })();
