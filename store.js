@@ -467,6 +467,7 @@ document.addEventListener("submit", function(e){
   payload.idempotency_key = stored.key;
 
   checkoutBusy = true; pay.disabled = true; pay.setAttribute("aria-disabled", "true");
+  window.setTimeout(function(){ delete form.dataset.retried; }, 5000);
   status.textContent = "Securing your order…";
   fetch(FN + "create-order", {
     method: "POST",
@@ -482,6 +483,15 @@ document.addEventListener("submit", function(e){
       return;
     }
     checkoutBusy = false; pay.disabled = false; pay.removeAttribute("aria-disabled");
+    if((b.error === "order_closed" || b.error === "already_paid") && !form.dataset.retried){
+      /* the previous attempt with this exact cart expired, failed or was already paid:
+         start a fresh order instead of getting stuck on the old one */
+      try { window.sessionStorage.removeItem(KEY_STORE); } catch(x){}
+      form.dataset.retried = "1";
+      status.textContent = "Starting a fresh checkout\u2026";
+      window.setTimeout(function(){ form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable:true })); }, 50);
+      return;
+    }
     if(b.error === "price_changed"){
       return loadCatalog(true).then(function(){ renderSummary(el); fail("Prices or delivery fees were just updated. Please review your new total and press Pay Now again."); });
     }

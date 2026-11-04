@@ -46,7 +46,8 @@ function summary(o){
   return wrap;
 }
 
-function render(o){
+function freshCheckout(){ try { window.sessionStorage.removeItem("robat_checkout_key"); } catch(e){} }
+function render(o, gateway){
   if(o.payment_status === "paid"){
     try { window.localStorage.removeItem("robat_cart_v1"); window.sessionStorage.removeItem("robat_checkout_key"); } catch(e){}
     var nodes = [];
@@ -61,18 +62,28 @@ function render(o){
     return true;
   }
   if(o.payment_status === "failed"){
+    freshCheckout();
     show("Order status", "Payment failed", [
       el("p", "lead", "Your payment didn’t go through, so no order was placed and you have not been charged by us. Your cart is still saved."),
       link("index.html#/cart", "Back to cart and try again", "btn solid"), contactLine()]);
     return true;
   }
   if(o.payment_status === "expired"){
+    freshCheckout();
     show("Order status", "This checkout expired", [
       el("p", "lead", "We held your items for a short time but didn’t receive a payment, so the hold was released. Your cart is still saved."),
       link("index.html#/cart", "Back to cart", "btn solid"), contactLine()]);
     return true;
   }
-  return false; /* still pending */
+  if(gateway === "abandoned" || gateway === "failed"){
+    /* Paystack says nothing was paid on this attempt (window closed, card declined, or cancelled) */
+    freshCheckout();
+    show("Order status", "Payment not completed", [
+      el("p", "lead", "Your payment wasn\u2019t completed \u2014 for example the card was declined or the payment window was closed. You have not been charged. Your cart is still saved."),
+      link("index.html#/cart", "Back to cart and try again", "btn solid"), contactLine()]);
+    return true;
+  }
+  return false; /* still processing */
 }
 
 function showPendingFinal(o){
@@ -100,7 +111,7 @@ function check(){
   }).then(function(j){
     var o = j && j.order;
     if(!o){ throw { notFound: true }; }
-    if(render(o)){ return; }
+    if(render(o, j.gateway_status)){ return; }
     if(attempts < MAX_ATTEMPTS){
       body.firstChild && (body.firstChild.textContent = "Still waiting for confirmation from Paystack… (" + attempts + "/" + MAX_ATTEMPTS + ")");
       window.setTimeout(check, 3000);

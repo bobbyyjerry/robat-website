@@ -148,7 +148,7 @@ function tabOrders(panel){
           h("td", {}, h("strong", { text:o.order_number }), o.is_test ? h("span", { class:"badge test", text:"TEST" }) : null),
           h("td", { text:o.customer_name }),
           h("td", { text:money(o.total_ngn) }),
-          h("td", {}, h("span", { class:"badge " + o.payment_status, text:o.payment_status }), o.review_flag ? h("span", { class:"badge flag", text:"review" }) : null),
+          h("td", {}, h("span", { class:"badge " + o.payment_status, text: o.payment_status === "pending" ? "awaiting payment" : o.payment_status }), o.review_flag ? h("span", { class:"badge flag", text:"review" }) : null),
           h("td", {}, ful, " ", toggle)));
         tbody.appendChild(detail);
       });
@@ -166,6 +166,22 @@ function tabOrders(panel){
 function orderDetail(o){
   var items = (o.order_items || []).map(function(i){ return i.product_name + " · " + i.color + "/" + i.size + " × " + i.qty + " — " + money(i.line_ngn) + (i.is_preorder ? " (preorder)" : ""); });
   var notes = h("textarea", { rows:3, maxLength:1000, "aria-label":"Admin notes for " + o.order_number, value:o.admin_notes || "" });
+  var recheck = null;
+  if(o.payment_status === "pending"){
+    recheck = h("button", { type:"button", class:"btn", text:"Re-check payment with Paystack" });
+    recheck.addEventListener("click", function(){
+      recheck.disabled = true; say("Checking with Paystack\u2026");
+      fetch(CFG.url + "/functions/v1/verify-payment", { method:"POST", headers:{ "Content-Type":"application/json", apikey:CFG.publishableKey },
+        body: JSON.stringify({ order_number:o.order_number, token:o.public_token }) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        var st = j && j.order ? j.order.payment_status : "unknown";
+        var gw = j && j.gateway_status ? " (Paystack says: " + j.gateway_status + ")" : "";
+        say(o.order_number + " is " + st + gw + ".");
+        if(st !== "pending"){ showTab("orders"); } else { recheck.disabled = false; }
+      }).catch(function(){ recheck.disabled = false; say("Couldn\u2019t reach the server.", true); });
+    });
+  }
   var save = h("button", { type:"button", class:"btn", text:"Save note" });
   save.addEventListener("click", function(){ saveWrap(save, rest("PATCH", "orders?id=eq." + o.id, { admin_notes:notes.value }), "Note saved."); });
   function dd(label, value){ return [h("dt", { text:label }), h("dd", { text:value || "—" })]; }
@@ -176,7 +192,8 @@ function orderDetail(o){
       dd("Total (NGN)", money(o.total_ngn)), dd("Exchange rate used", "$1 = " + money(o.exchange_rate))),
     h("dl", {}, dd("Paystack reference", o.paystack_reference), dd("Paid at", o.paid_at ? new Date(o.paid_at).toLocaleString() : ""),
       dd("Channel", o.payment_channel), dd("Needs review?", o.review_flag), dd("Terms accepted", o.terms_accepted_at ? new Date(o.terms_accepted_at).toLocaleString() : ""))),
-    h("div", { class:"of-field" }, h("label", { text:"Admin notes (private)" }), notes), h("div", { class:"row-actions" }, save));
+    h("div", { class:"of-field" }, h("label", { text:"Admin notes (private)" }), notes), h("div", { class:"row-actions" }, save, recheck),
+    o.payment_status === "pending" ? h("p", { class:"small", text:"Pending = no payment confirmed yet. If the customer doesn\u2019t pay within 30 minutes the order becomes \u201Cexpired\u201D and its held stock is released automatically." }) : null);
 }
 
 /* ---------- PRODUCTS & PRICES ---------- */
