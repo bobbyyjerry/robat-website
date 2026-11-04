@@ -495,3 +495,21 @@
 .os-number{font-family:var(--mono); font-size:15px;}
 .os-summary{border:1px solid var(--hairline-strong); padding:20px; border-radius:var(--radius);}
 @media (prefers-reduced-motion:reduce){ .cart-count{transition:none;} }
+
+/* ---------- receipt (order-status page) ---------- */
+.os-receipt{border:1px solid var(--hairline-strong); padding:22px; border-radius:var(--radius); background:rgba(255,255,255,.3);}
+.os-receipt-head{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--paper); padding-bottom:10px; margin-bottom:6px;}
+.os-receipt-brand{font-family:var(--disp); font-weight:800; font-size:26px; letter-spacing:.04em;}
+.os-receipt .os-summary{border:0; padding:0; margin-top:12px;}
+.os-receipt-to{margin-top:16px; font-size:14px; line-height:1.6;}
+.os-receipt-biz{margin-top:18px; font-family:var(--mono); font-size:11.5px; color:var(--paper-dim); line-height:1.6;}
+.os-actions{display:flex; flex-wrap:wrap; gap:12px;}
+@media print{
+  #nav, .skip-link, .os-actions, noscript, #os-eyebrow{display:none !important;}
+  body{background:#fff !important; color:#000 !important;}
+  .article-hero{padding:0 !important; min-height:0 !important;}
+  .os-receipt{border:1px solid #999; background:#fff;}
+  a{color:#000; text-decoration:none;}
+}
+
+#os-title:focus{outline:none;}

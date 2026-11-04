@@ -47,17 +47,49 @@ function summary(o){
 }
 
 function freshCheckout(){ try { window.sessionStorage.removeItem("robat_checkout_key"); } catch(e){} }
+function fmtDate(iso){
+  if(!iso){ return ""; }
+  try { return new Date(iso).toLocaleString("en-GB", { timeZone:"Africa/Lagos", dateStyle:"long", timeStyle:"short" }) + " (Lagos)"; }
+  catch(e){ return String(iso); }
+}
+function kv(k, v){ var r = el("div", "sum-row"); r.appendChild(el("span", null, k)); r.appendChild(el("span", null, v || "\u2014")); return r; }
+function receipt(o){
+  var box = el("section", "os-receipt"); box.setAttribute("aria-label", "Receipt");
+  var head = el("div", "os-receipt-head");
+  head.appendChild(el("div", "os-receipt-brand", "ROBAT"));
+  head.appendChild(el("div", "of-label", "Receipt"));
+  box.appendChild(head);
+  box.appendChild(kv("Order number", o.order_number));
+  box.appendChild(kv("Date paid", fmtDate(o.paid_at)));
+  box.appendChild(kv("Payment method", o.channel ? o.channel.charAt(0).toUpperCase() + o.channel.slice(1) + " (Paystack)" : "Paystack"));
+  box.appendChild(kv("Payment reference", o.reference));
+  box.appendChild(summary(o));
+  var to = el("div", "os-receipt-to");
+  to.appendChild(el("div", "of-label", "Delivering to"));
+  [o.name, o.ship_line1, [o.ship_city, o.ship_state].filter(Boolean).join(", "), o.phone].forEach(function(line){ if(line){ to.appendChild(el("div", null, line)); } });
+  box.appendChild(to);
+  var biz = (window.ROBAT_CONFIG && window.ROBAT_CONFIG.brand) || {};
+  box.appendChild(el("p", "os-receipt-biz", [biz.legalName || "ROBAT FIT LTD", biz.registrationNumber, biz.address, "info@robatfit.com"].filter(Boolean).join(" \u00B7 ") + ". Payment processed by Paystack."));
+  return box;
+}
 function render(o, gateway){
   if(o.payment_status === "paid"){
     try { window.localStorage.removeItem("robat_cart_v1"); window.sessionStorage.removeItem("robat_checkout_key"); } catch(e){}
     var nodes = [];
-    if(o.is_test){ var tb = el("p", "of-msg is-error", "TEST ORDER — this was paid with Paystack test mode. No real money was taken."); tb.setAttribute("role", "alert"); nodes.push(tb); }
+    if(o.is_test){ var tb = el("p", "of-msg is-error", "TEST ORDER \u2014 this was paid with Paystack test mode. No real money was taken."); tb.setAttribute("role", "alert"); nodes.push(tb); }
     nodes.push(el("p", "lead", "Thank you" + (o.name ? ", " + o.name.split(" ")[0] : "") + ". Your payment has been verified and your order is confirmed."));
-    var num = el("p", "os-number"); num.appendChild(document.createTextNode("Order number: ")); num.appendChild(el("strong", null, o.order_number)); nodes.push(num);
-    nodes.push(summary(o));
-    nodes.push(el("p", "of-note", "Please keep your order number. Delivery timelines will be confirmed after your order, and we will contact you using the details you gave us" + (o.email ? " (" + o.email + ")" : "") + "."));
+    nodes.push(receipt(o));
+    nodes.push(el("p", "of-note", o.receipt_sent
+      ? "We\u2019ve emailed a copy of this receipt to " + (o.email || "you") + ". If you can\u2019t find it, check your spam folder."
+      : "Keep this receipt: use the button below to print it or save it as a PDF."));
+    nodes.push(el("p", "of-note", "Delivery timelines will be confirmed after your order, and we will contact you using the details you gave us."));
     nodes.push(contactLine());
-    nodes.push(link("index.html#/shop", "Continue shopping", "btn solid"));
+    var actions = el("div", "os-actions");
+    var printBtn = el("button", "btn solid", "Print / save receipt as PDF"); printBtn.type = "button";
+    printBtn.addEventListener("click", function(){ window.print(); });
+    actions.appendChild(printBtn);
+    actions.appendChild(link("index.html#/shop", "Continue shopping", "btn"));
+    nodes.push(actions);
     show("Order confirmed", "Payment confirmed", nodes);
     return true;
   }
