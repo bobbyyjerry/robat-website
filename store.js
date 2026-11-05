@@ -273,7 +273,8 @@ function renderPanel(el){
     }
   });
   html += '</div></fieldset>';
-  html += '<fieldset class="of-group"><legend class="of-label">Size</legend><div class="of-options" data-sizes></div></fieldset>';
+  html += '<fieldset class="of-group"><legend class="of-label">Size</legend><div class="of-options" data-sizes></div>' +
+    '<button type="button" class="link-btn sg-open" data-open-size-guide>Size guide</button></fieldset>';
   html += '<div class="of-field" style="max-width:140px;"><label for="sq-' + esc(slug) + '">Quantity</label><input id="sq-' + esc(slug) + '" type="number" name="qty" min="1" max="10" value="' + esc(String(sel.qty)) + '"></div>';
   html += '<div><button type="submit" class="btn solid block">Add To Cart</button>';
   html += '<p class="of-msg form-status" role="status" aria-live="polite" data-msg></p></div>';
@@ -551,6 +552,105 @@ function renderShipping(el){
 }
 
 /* ---------- pages (HTML strings handed to the router) ---------- */
+
+/* ---------- size guide (measurements supplied by ROBAT, in inches) ---------- */
+var SIZE_CHARTS = {
+  shirt: {
+    title: "Shirt",
+    measures: [
+      ["length", "Length", "Measure from the end of the neck tape to the bottom end of the shirt."],
+      ["chest", "Chest across", "Measure from one armpit to the other."],
+      ["sleeve", "Sleeve", "Measure from the top of the shoulder to the end of the full sleeve."]
+    ],
+    groups: {
+      adult: { sizes:["S","M","L","XL","XXL"], length:[28,28.75,29.5,30.3,31.1], chest:[20.1,21.3,22.5,23.6,24.8], sleeve:[14.2,14.6,15,15.3,15.75] }
+    }
+  },
+  short: {
+    title: "Shorts",
+    measures: [
+      ["length", "Length", "Measure from the outside bottom to the top of the waistband."],
+      ["width", "Width", "Measure from one side of the waistband to the other (unstretched)."],
+      ["inseam", "Inseam", "Measure the inner seam to the bottom of the shorts."]
+    ],
+    groups: {
+      adult: { sizes:["S","M","L","XL","XXL"], length:[17.9,18.3,18.7,19.1,19.5], width:[14.6,15.4,16.1,16.9,17.7], inseam:[6.5,6.5,6.5,6.5,6.5] }
+    }
+  }
+};
+var CHARTS_FOR = { "performance-shirt":["shirt"], "performance-short":["short"], "genera-complete-set":["shirt","short"] };
+var sgUnit = (lsGet("robat_size_unit") === "cm") ? "cm" : "in";
+
+function sgValue(v){
+  if(sgUnit === "cm"){ return (Math.round(v * 2.54 * 10) / 10).toFixed(1).replace(/\.0$/, ""); }
+  return String(v);
+}
+function sgBody(kinds, group){
+  var html = '<div class="sg-controls">' +
+    '<div class="sg-seg" role="group" aria-label="Units">' +
+      '<button type="button" data-sg-unit="in" aria-pressed="' + (sgUnit === "in") + '">Inches</button>' +
+      '<button type="button" data-sg-unit="cm" aria-pressed="' + (sgUnit === "cm") + '">CM</button>' +
+    '</div></div>';
+  kinds.forEach(function(kind){
+    var c = SIZE_CHARTS[kind], g = c.groups[group];
+    html += '<div class="sg-table-wrap" role="region" tabindex="0" aria-label="' + esc(c.title + " sizes") + '">' +
+      '<table class="sg-table"><caption>' + esc(c.title) + ' <span>(' + (sgUnit === "cm" ? "cm" : "inches") + ')</span></caption>' +
+      '<thead><tr><th scope="col">Size</th>' + g.sizes.map(function(s){ return '<th scope="col">' + esc(s) + '</th>'; }).join("") + '</tr></thead><tbody>' +
+      c.measures.map(function(m, i){
+        return '<tr><th scope="row"><span class="sg-dot sg-dot-' + i + '" aria-hidden="true"></span>' + esc(m[1]) + '</th>' +
+          g[m[0]].map(function(v){ return '<td>' + sgValue(v) + '</td>'; }).join("") + '</tr>';
+      }).join("") +
+      '</tbody></table></div>';
+    if(c.note){ html += '<p class="of-note sg-note">' + esc(c.note) + '</p>'; }
+    html += '<dl class="sg-how">' + c.measures.map(function(m, i){
+      return '<div><dt><span class="sg-dot sg-dot-' + i + '" aria-hidden="true"></span>' + esc(m[1]) + '</dt><dd>' + esc(m[2]) + '</dd></div>';
+    }).join("") + '</dl>';
+  });
+  html += '<p class="of-note">' + (sgUnit === "cm"
+    ? 'Measurements are converted from inches and may vary by about 2.5 cm (1 inch).'
+    : 'All measurements are in inches. Measurements may vary by 1 inch.') +
+    ' The sizes you can order are shown in the size selector.</p>';
+  return html;
+}
+function sizeGuideHTML(slug, opts){
+  var kinds = slug ? (CHARTS_FOR[slug] || []) : ["shirt","short"];
+  if(!kinds.length){ return ""; }
+  var open = opts && opts.open;
+  return '<details class="size-guide" data-size-guide data-kinds="' + kinds.join(",") + '" data-group="adult"' + (open ? " open" : "") + '>' +
+    '<summary>Size Guide</summary><div class="sg-body">' + sgBody(kinds, "adult") + '</div></details>';
+}
+function sgRefresh(box){
+  var kinds = box.getAttribute("data-kinds").split(","), group = box.getAttribute("data-group") || "adult";
+  box.querySelector(".sg-body").innerHTML = sgBody(kinds, group);
+}
+document.addEventListener("click", function(e){
+  var t = e.target.closest ? e.target : null;
+  if(!t){ return; }
+  var g = null, u = t.closest("[data-sg-unit]"), o = t.closest("[data-open-size-guide]");
+  if(g || u){
+    var box = t.closest("[data-size-guide]");
+    if(g){ box.setAttribute("data-group", g.getAttribute("data-sg-group")); }
+    if(u){ sgUnit = u.getAttribute("data-sg-unit") === "cm" ? "cm" : "in"; lsSet("robat_size_unit", sgUnit); }
+    document.querySelectorAll("[data-size-guide]").forEach(sgRefresh);
+    var again = box.querySelector(g ? '[data-sg-group="' + box.getAttribute("data-group") + '"]' : '[data-sg-unit="' + sgUnit + '"]');
+    if(again){ again.focus(); }
+  }
+  if(o){
+    var guide = document.querySelector("[data-size-guide]");
+    if(guide){
+      guide.open = true;
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      guide.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      var s = guide.querySelector("summary"); if(s){ s.focus({ preventScroll:true }); }
+    }
+  }
+});
+function pageSizeGuide(){
+  return '<section class="article-hero"><div class="wrap"><div class="eyebrow">Fit</div><h1>SIZE GUIDE</h1>' +
+    '<p class="lead dek">Measurements for the GENERA Performance Shirt and Performance Short. Lay the garment flat to measure.</p></div></section>' +
+    '<section style="padding-top:24px;"><div class="wrap">' + sizeGuideHTML(null, { open:true }) + '</div></section>';
+}
+
 function pageCart(){
   return '<section class="article-hero"><div class="wrap"><h1>YOUR CART</h1></div></section>' +
     '<section style="padding-top:24px;"><div class="wrap"><div id="store-cart" style="max-width:860px;"></div></div></section>';
@@ -601,6 +701,7 @@ document.addEventListener("submit", function(e){
 
 window.RobatStore = {
   mount: mount, pageCart: pageCart, pageCheckout: pageCheckout, pageTrack: pageTrack,
+  pageSizeGuide: pageSizeGuide, sizeGuideHTML: sizeGuideHTML,
   productPanelHTML: productPanelHTML, priceTagHTML: priceTagHTML,
   navHTML: function(){ return '<div class="nav-store" data-store-nav></div>'; },
   policyHTML: function(){ return '<div data-store-policy></div>'; },

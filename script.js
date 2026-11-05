@@ -450,7 +450,7 @@ var PRODUCTS = [
       "The Performance Shirt is the first top in the GENERA line \u2014 cut for range of motion under real load, in a fabric chosen for how it holds up three hours into a session, not how it looks on a hanger.",
       "It ships as part of GENERA, ROBAT&#39;s first generation of product: limited, intentional, and built the same slow way as everything else on this site."
     ],
-    sizes: ["M","L","XL","XXL","XXXL"],
+    sizes: ["S","M","L","XL","XXL"],
     colors: [
       {name:"Black", available:true},
       {name:"White", available:false},
@@ -473,7 +473,7 @@ var PRODUCTS = [
       "The Performance Short is built to the same standard as the Shirt \u2014 tested against real training movement first, styled second.",
       "It launches alongside the Shirt as part of GENERA, the opening chapter of what ROBAT becomes next."
     ],
-    sizes: ["M","L","XL","XXL","XXXL"],
+    sizes: ["S","M","L","XL","XXL"],
     colors: [
       {name:"Black", available:true},
       {name:"White", available:false},
@@ -496,7 +496,7 @@ var PRODUCTS = [
       "The Complete Set is the GENERA Performance Shirt and the GENERA Performance Short together, as one order \u2014 the full first generation of ROBAT product, built to be worn as a set.",
       "Choose one size; it applies to both pieces. If you need a different size for each piece, order the Shirt and the Short separately."
     ],
-    sizes: ["M","L","XL","XXL","XXXL"],
+    sizes: ["S","M","L","XL","XXL"],
     colors: [
       {name:"Black", available:true},
       {name:"White", available:false},
@@ -576,6 +576,8 @@ function render(){
     html = pageProduct(product); setSEO(product.name, product.short);
   } else if(route === "/cart"){
     html = RobatStore.pageCart(); setSEO("Your Cart", "Review the items in your ROBAT cart.");
+  } else if(route === "/size-guide"){
+    html = RobatStore.pageSizeGuide(); setSEO("Size Guide", "ROBAT size guide: shirt and shorts measurements in inches and centimetres for adult, women and youth sizes.");
   } else if(route === "/track"){
     html = RobatStore.pageTrack(); setSEO("Track Your Order", "Check the payment and delivery status of your ROBAT order.");
   } else if(route === "/checkout"){
@@ -647,7 +649,7 @@ function footerHTML(){
         '<p class="foot-tagline">Premium Performance Wear</p>' +
         '<p class="lead" style="font-size:13px;margin-top:14px;">People. Progress. Purpose.</p>' +
       '</div>' +
-      '<div><h4>Brand</h4><a href="#/shop">Shop</a><a href="#/about">About ROBAT</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a></div>' +
+      '<div><h4>Brand</h4><a href="#/shop">Shop</a><a href="#/size-guide">Size Guide</a><a href="#/about">About ROBAT</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a></div>' +
       '<div><h4>Get In Touch</h4><a href="#/contact">Contact</a><a href="#/track">Track Your Order</a><a href="#/journal">Latest Notes</a></div>' +
       '<div><h4>Legal</h4><a href="#/privacy">Privacy Policy</a><a href="#/terms">Terms &amp; Conditions</a><a href="#/shipping-policy">Shipping Policy</a><a href="#/returns-policy">Returns &amp; Refunds</a><a href="#/accessibility">Accessibility</a></div>' +
     '</div>' +
@@ -1198,6 +1200,7 @@ function pageProduct(p){
     '<div class="section-head reveal"><div><div class="eyebrow">Preorder</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">Order Yours</h2></div></div>' +
     '<p class="lead reveal">Prices are shown in USD by default and you can switch to Naira at the top of the page. You pay in Naira (\u20A6) at checkout, securely through Paystack. Delivery timelines are confirmed after you order.</p>' +
     '<div class="reveal">' + RobatStore.productPanelHTML(p.slug) + '</div>' +
+    '<div class="reveal" style="margin-top:28px;max-width:860px;">' + RobatStore.sizeGuideHTML(p.slug) + '</div>' +
   '</div></section>' +
 
   (others.length ?
