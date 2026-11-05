@@ -191,7 +191,8 @@ function orderDetail(o){
     h("dl", {}, dd("Items", items.join("  |  ")), dd("Subtotal", money(o.subtotal_ngn)), dd("Delivery fee", money(o.shipping_ngn)),
       dd("Total (NGN)", money(o.total_ngn)), dd("Exchange rate used", "$1 = " + money(o.exchange_rate))),
     h("dl", {}, dd("Paystack reference", o.paystack_reference), dd("Paid at", o.paid_at ? new Date(o.paid_at).toLocaleString() : ""),
-      dd("Channel", o.payment_channel), dd("Needs review?", o.review_flag), dd("Terms accepted", o.terms_accepted_at ? new Date(o.terms_accepted_at).toLocaleString() : ""))),
+      dd("Channel", o.payment_channel), dd("Needs review?", o.review_flag), dd("Terms accepted", o.terms_accepted_at ? new Date(o.terms_accepted_at).toLocaleString() : ""),
+      dd("Receipt email", o.receipt_sent_at ? "Sent " + new Date(o.receipt_sent_at).toLocaleString() : (o.receipt_error ? "Not sent \u2014 " + o.receipt_error : (o.payment_status === "paid" ? "Not sent (email receipts not set up yet)" : "\u2014"))))),
     h("div", { class:"of-field" }, h("label", { text:"Admin notes (private)" }), notes), h("div", { class:"row-actions" }, save, recheck),
     o.payment_status === "pending" ? h("p", { class:"small", text:"Pending = no payment confirmed yet. If the customer doesn\u2019t pay within 30 minutes the order becomes \u201Cexpired\u201D and its held stock is released automatically." }) : null);
 }

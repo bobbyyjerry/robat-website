@@ -544,7 +544,7 @@ function render(){
   var productMatch = route.match(/^\/shop\/([a-z-]+)$/);
 
   if(route === "/" || route === ""){
-    html = pageHome(); setSEO("Engineered For More", "ROBAT is a premium performance gymwear brand. Performance built for training. Designed for everything beyond it.");
+    html = pageHome(); setSEO("Premium Performance Wear | Shop GENERA", "ROBAT is a premium performance gymwear brand from Lagos, Nigeria. Shop the GENERA Performance Shirt, Short and Complete Set, now on preorder, with delivery across Nigeria.");
   } else if(route === "/about"){
     html = pageAbout(); setSEO("About — People. Progress. Purpose.", "ROBAT's philosophy: People. Progress. Purpose.");
   } else if(pillarMatch && getPillar(pillarMatch[1])){
@@ -576,6 +576,8 @@ function render(){
     html = pageProduct(product); setSEO(product.name, product.short);
   } else if(route === "/cart"){
     html = RobatStore.pageCart(); setSEO("Your Cart", "Review the items in your ROBAT cart.");
+  } else if(route === "/track"){
+    html = RobatStore.pageTrack(); setSEO("Track Your Order", "Check the payment and delivery status of your ROBAT order.");
   } else if(route === "/checkout"){
     html = RobatStore.pageCheckout(); setSEO("Checkout", "Secure checkout for your ROBAT order, paid through Paystack.");
   } else if(route === "/contact"){
@@ -646,7 +648,7 @@ function footerHTML(){
         '<p class="lead" style="font-size:13px;margin-top:14px;">People. Progress. Purpose.</p>' +
       '</div>' +
       '<div><h4>Brand</h4><a href="#/shop">Shop</a><a href="#/about">About ROBAT</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a></div>' +
-      '<div><h4>Get In Touch</h4><a href="#/contact">Contact</a><a href="#/journal">Latest Notes</a></div>' +
+      '<div><h4>Get In Touch</h4><a href="#/contact">Contact</a><a href="#/track">Track Your Order</a><a href="#/journal">Latest Notes</a></div>' +
       '<div><h4>Legal</h4><a href="#/privacy">Privacy Policy</a><a href="#/terms">Terms &amp; Conditions</a><a href="#/shipping-policy">Shipping Policy</a><a href="#/returns-policy">Returns &amp; Refunds</a><a href="#/accessibility">Accessibility</a></div>' +
     '</div>' +
     '<div class="foot-legal">' +
@@ -1528,7 +1530,7 @@ function pagePrivacy(){
     legalH2("Who Handles It") +
     legalP("Paystack processes your payment under its own terms and privacy notice. Order records are stored with our database provider, Supabase. Our website is hosted on GitHub Pages. Our website fonts are provided by Google Fonts. Receipt emails are sent through Resend, and emails you send us are handled by our email provider, Namecheap Private Email. No analytics or tracking scripts run on this site.") +
     legalH2("Cookies And Browser Storage") +
-    legalP("We don\u2019t use cookies or tracking. Your browser stores your cart and chosen currency on your own device so they\u2019re remembered between visits; you can clear them at any time in your browser settings.") +
+    legalP("We don\u2019t use cookies or tracking. Your browser stores your cart and chosen currency on your own device so they\u2019re remembered between visits, and keeps the checkout details you type only until you close the tab or your payment is confirmed; you can clear them at any time in your browser settings.") +
     legalH2("Your Rights") +
     legalP("You can ask what information we hold about you, ask us to correct it, or ask us to delete it (where we are not required to keep it), by emailing <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.") +
     legalH2("Contact") +

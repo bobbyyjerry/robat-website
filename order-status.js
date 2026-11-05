@@ -52,6 +52,25 @@ function fmtDate(iso){
   try { return new Date(iso).toLocaleString("en-GB", { timeZone:"Africa/Lagos", dateStyle:"long", timeStyle:"short" }) + " (Lagos)"; }
   catch(e){ return String(iso); }
 }
+/* delivery progress, set by ROBAT in the admin page */
+function progress(status){
+  var wrap = el("section", "os-progress"); wrap.setAttribute("aria-label", "Order progress");
+  if(status === "cancelled"){
+    wrap.appendChild(el("p", "os-progress-note", "This order has been cancelled. If you have questions, please contact us."));
+    return wrap;
+  }
+  var steps = [["new","Confirmed"],["processing","Preparing"],["shipped","Shipped"],["delivered","Delivered"]];
+  var at = Math.max(0, steps.map(function(s){ return s[0]; }).indexOf(status || "new"));
+  var ol = el("ol", "os-steps");
+  steps.forEach(function(s, i){
+    var li = el("li", i < at ? "done" : (i === at ? "current" : ""), s[1]);
+    if(i === at){ li.setAttribute("aria-current", "step"); }
+    ol.appendChild(li);
+  });
+  wrap.appendChild(el("div", "of-label", "Order progress"));
+  wrap.appendChild(ol);
+  return wrap;
+}
 function kv(k, v){ var r = el("div", "sum-row"); r.appendChild(el("span", null, k)); r.appendChild(el("span", null, v || "\u2014")); return r; }
 function receipt(o){
   var box = el("section", "os-receipt"); box.setAttribute("aria-label", "Receipt");
@@ -74,10 +93,11 @@ function receipt(o){
 }
 function render(o, gateway){
   if(o.payment_status === "paid"){
-    try { window.localStorage.removeItem("robat_cart_v1"); window.sessionStorage.removeItem("robat_checkout_key"); } catch(e){}
+    try { window.localStorage.removeItem("robat_cart_v1"); window.sessionStorage.removeItem("robat_checkout_key"); window.sessionStorage.removeItem("robat_checkout_details"); } catch(e){}
     var nodes = [];
     if(o.is_test){ var tb = el("p", "of-msg is-error", "TEST ORDER \u2014 this was paid with Paystack test mode. No real money was taken."); tb.setAttribute("role", "alert"); nodes.push(tb); }
     nodes.push(el("p", "lead", "Thank you" + (o.name ? ", " + o.name.split(" ")[0] : "") + ". Your payment has been verified and your order is confirmed."));
+    nodes.push(progress(o.fulfilment_status));
     nodes.push(receipt(o));
     nodes.push(el("p", "of-note", o.receipt_sent
       ? "We\u2019ve emailed a copy of this receipt to " + (o.email || "you") + ". If you can\u2019t find it, check your spam folder."

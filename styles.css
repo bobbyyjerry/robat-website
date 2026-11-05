@@ -524,3 +524,12 @@
 .foot-copy,.foot-reg{margin:0; line-height:1.6;}
 .foot-reg{font-size:10.5px; letter-spacing:.06em;}
 @media (max-width:520px){ .foot-policies{gap:2px 18px;} .foot-policies .foot-sep{display:none;} .foot-legal{font-size:10.5px;} }
+
+/* ---------- order progress (order-status page) ---------- */
+.os-progress{display:flex; flex-direction:column; gap:10px;}
+.os-steps{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(4,1fr); gap:6px;}
+.os-steps li{padding:12px 4px 0; border-top:3px solid var(--hairline-strong); font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--steel);}
+.os-steps li.done{border-top-color:var(--paper); color:var(--paper-dim);}
+.os-steps li.current{border-top-color:var(--accent); color:var(--paper); font-weight:600;}
+.os-progress-note{font-family:var(--mono); font-size:13px; color:var(--paper-dim);}
+@media print{ .os-progress{display:none;} }

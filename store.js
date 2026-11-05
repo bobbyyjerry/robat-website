@@ -19,6 +19,8 @@ var SIZE_ORDER = ["XXS","XS","S","M","L","XL","XXL","XXXL"];
 var CART_KEY = "robat_cart_v1";
 var CUR_KEY = "robat_currency";
 var KEY_STORE = "robat_checkout_key";
+var DETAILS_STORE = "robat_checkout_details"; /* this tab only; cleared when the tab closes or the order is paid */
+var DETAIL_FIELDS = ["name","phone","email","line1","city","state","notes"];
 var WHATSAPP = (window.ROBAT_CONFIG && window.ROBAT_CONFIG.contact && window.ROBAT_CONFIG.contact.whatsappNumberIntl) || "";
 
 /* ---------- tiny safe helpers ---------- */
@@ -403,7 +405,31 @@ function renderCheckoutIfNeeded(el){
     '</form>' +
     '<aside class="store-summary" aria-labelledby="co-sum-h"><h2 id="co-sum-h" class="of-label">Order summary</h2><div id="co-summary"></div></aside>' +
     '</div>';
+  restoreDetails(el);
   renderSummary(el);
+}
+/* Remember what the customer typed (this browser tab only), so coming back
+   from Paystack or retrying after a declined card doesn't mean retyping. */
+function restoreDetails(el){
+  var saved = null; try { saved = JSON.parse(ssGet(DETAILS_STORE) || "null"); } catch(e){}
+  var form = el.querySelector("#checkout-form");
+  if(!form){ return; }
+  if(saved){
+    DETAIL_FIELDS.forEach(function(k){
+      var f = form.elements[k];
+      if(f && typeof saved[k] === "string" && saved[k].length <= 300){
+        if(f.tagName === "SELECT"){ if([].some.call(f.options, function(o){ return o.value === saved[k]; })){ f.value = saved[k]; } }
+        else { f.value = saved[k]; }
+      }
+    });
+  }
+  form.addEventListener("input", function(){ saveDetails(form); });
+  form.addEventListener("change", function(){ saveDetails(form); });
+}
+function saveDetails(form){
+  var data = {};
+  DETAIL_FIELDS.forEach(function(k){ var f = form.elements[k]; if(f){ data[k] = String(f.value || "").slice(0, 300); } });
+  ssSet(DETAILS_STORE, JSON.stringify(data));
 }
 function renderSummary(el){
   var box = el.querySelector("#co-summary");
@@ -538,8 +564,43 @@ function productPanelHTML(slug){
 }
 function priceTagHTML(slug){ return '<span class="store-pricetag" data-store-price="' + esc(slug) + '"></span>'; }
 
+function pageTrack(){
+  return '<section class="article-hero"><div class="wrap"><div class="eyebrow">Orders</div><h1>TRACK YOUR ORDER</h1>' +
+    '<p class="lead dek">Enter the order number from your receipt and the email you used at checkout.</p></div></section>' +
+    '<section style="padding-top:24px;"><div class="wrap"><form id="track-form" class="store-form" novalidate style="max-width:520px;">' +
+      '<div class="of-field"><label for="tr-order">Order number</label><input id="tr-order" name="order" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ROBAT-261104-ABC1234567" maxlength="40" required></div>' +
+      '<div class="of-field"><label for="tr-email">Email used at checkout</label><input id="tr-email" name="email" type="email" autocomplete="email" maxlength="160" required></div>' +
+      '<div><button type="submit" class="btn solid block">Find My Order</button>' +
+      '<p class="of-msg" id="tr-status" role="status" aria-live="polite"></p></div>' +
+    '</form></div></section>';
+}
+document.addEventListener("submit", function(e){
+  if(!e.target || e.target.id !== "track-form"){ return; }
+  e.preventDefault();
+  var form = e.target, status = form.querySelector("#tr-status"), btn = form.querySelector("button");
+  var num = String(form.elements.order.value || "").trim().toUpperCase().replace(/\s+/g, "");
+  var email = String(form.elements.email.value || "").trim();
+  function say(t, err){ status.textContent = t; status.classList.toggle("is-error", !!err); }
+  if(!/^ROBAT-\d{6}-[0-9A-Z]{6,12}$/.test(num)){ say("Please enter your order number exactly as it appears on your receipt (it starts with ROBAT-).", true); form.elements.order.focus(); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ say("Please enter the email address you used at checkout.", true); form.elements.email.focus(); return; }
+  if(btn.disabled){ return; }
+  btn.disabled = true; say("Looking up your order\u2026");
+  fetch(FN + "verify-payment", { method:"POST", headers:{ "Content-Type":"application/json", apikey:CFG.publishableKey },
+    body: JSON.stringify({ order_number:num, email:email }) })
+  .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return { ok:r.ok, body:j }; }); })
+  .then(function(res){
+    if(res.ok && res.body && typeof res.body.token === "string" && res.body.token){
+      say("Found it. Opening your order\u2026");
+      window.location.href = "order-status.html?o=" + encodeURIComponent(num) + "&t=" + encodeURIComponent(res.body.token);
+      return;
+    }
+    btn.disabled = false;
+    say("We couldn\u2019t find an order with those details. Check the order number and email on your receipt, or contact info@robatfit.com.", true);
+  }).catch(function(){ btn.disabled = false; say("We couldn\u2019t reach the server. Please check your connection and try again.", true); });
+});
+
 window.RobatStore = {
-  mount: mount, pageCart: pageCart, pageCheckout: pageCheckout,
+  mount: mount, pageCart: pageCart, pageCheckout: pageCheckout, pageTrack: pageTrack,
   productPanelHTML: productPanelHTML, priceTagHTML: priceTagHTML,
   navHTML: function(){ return '<div class="nav-store" data-store-nav></div>'; },
   policyHTML: function(){ return '<div data-store-policy></div>'; },
