@@ -23,7 +23,7 @@ var ROBAT_CONFIG = {
     legalName: "ROBAT FIT LTD",
     registrationNumber: "RC 9863999", // CAC registration number, as supplied by the owner
     tradingName: "ROBAT",
-    domain: null, // TODO: confirm production domain, e.g. "robatfit.com"
+    domain: "robatfit.com",
     address: "46, Royal Palm Drive, Ikoyi, Lagos, Nigeria"
   },
 
@@ -69,7 +69,7 @@ var ROBAT_CONFIG = {
   },
 
   analytics: {
-    provider: null, // TODO: confirm analytics provider, if any
+    provider: null, // no analytics is used on this site
     consentRequired: true // no analytics/tracking script should load before consent while this is true
   }
 };

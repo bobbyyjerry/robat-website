@@ -413,7 +413,7 @@ var FAQS = [
     slug: "launch-date", category: "contact", q: "When does ROBAT launch?",
     body: [
       "GENERA, ROBAT&#39;s first generation of product, is available to preorder through the Shop &mdash; that part is not waiting on a date.",
-      "A full, wide launch is being targeted for later in 2026, but that date is not yet confirmed, so we are not printing it here as a promise. The Journal and the newsletter are where the confirmed date lands first, the moment it is actually locked in.",
+      "The full launch date is TBD \u2014 it has not been confirmed yet, so we are not printing a date here as a promise. The Journal and the newsletter are where the confirmed date lands first, the moment it is actually locked in.",
       "Limited. Intentional. Made to move &mdash; that part has not changed."
     ]
   },
@@ -585,7 +585,7 @@ function render(){
   } else if(route === "/privacy"){
     html = pagePrivacy(); setSEO("Privacy Policy", "How ROBAT collects, uses and protects your information.");
   } else if(route === "/terms"){
-    html = pageTerms(); setSEO("Terms of Sale", "The terms that apply to orders placed with ROBAT FIT LTD.");
+    html = pageTerms(); setSEO("Terms & Conditions", "The terms that apply to orders placed with ROBAT FIT LTD.");
   } else if(route === "/shipping-policy"){
     html = pageShippingPolicy(); setSEO("Shipping Policy", "ROBAT delivery fees and delivery areas.");
   } else if(route === "/returns-policy"){
@@ -635,18 +635,25 @@ function navHTML(){
 }
 
 function footerHTML(){
+  var brand = ROBAT_CONFIG.brand || {};
+  var regNo = (brand.registrationNumber || "").replace(/^RC\s*/i, "");
   return '' +
   '<footer><div class="wrap">' +
     '<div class="foot-grid">' +
-      '<div>' +
-        '<div class="wordmark" style="font-size:26px;margin-bottom:14px;"><img class="mark" src="' + MARK_BLACK + '" alt=""><span>ROBAT</span></div>' +
-        '<p class="lead" style="font-size:13px;">People. Progress. Purpose. Premium performance gymwear engineered for training — and everything beyond it.</p>' +
+      '<div class="foot-brand">' +
+        '<div class="wordmark" style="font-size:26px;margin-bottom:10px;"><img class="mark" src="' + MARK_BLACK + '" alt=""><span>ROBAT</span></div>' +
+        '<p class="foot-tagline">Premium Performance Wear</p>' +
+        '<p class="lead" style="font-size:13px;margin-top:14px;">People. Progress. Purpose.</p>' +
       '</div>' +
       '<div><h4>Brand</h4><a href="#/shop">Shop</a><a href="#/about">About ROBAT</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a></div>' +
       '<div><h4>Get In Touch</h4><a href="#/contact">Contact</a><a href="#/journal">Latest Notes</a></div>' +
-      '<div><h4>Legal</h4><a href="#/privacy">Privacy Policy</a><a href="#/terms">Terms of Sale</a><a href="#/shipping-policy">Shipping Policy</a><a href="#/returns-policy">Returns &amp; Refunds</a><a href="#/accessibility">Accessibility</a></div>' +
+      '<div><h4>Legal</h4><a href="#/privacy">Privacy Policy</a><a href="#/terms">Terms &amp; Conditions</a><a href="#/shipping-policy">Shipping Policy</a><a href="#/returns-policy">Returns &amp; Refunds</a><a href="#/accessibility">Accessibility</a></div>' +
     '</div>' +
-    '<div class="foot-bottom"><span>&copy; ' + new Date().getFullYear() + ' ' + (ROBAT_CONFIG.brand.legalName || 'ROBAT') + '. ALL RIGHTS RESERVED.' + (ROBAT_CONFIG.brand.registrationNumber ? ' ' + ROBAT_CONFIG.brand.registrationNumber + '.' : '') + '</span><span>PEOPLE. PROGRESS. PURPOSE.</span></div>' +
+    '<div class="foot-legal">' +
+      '<nav class="foot-policies" aria-label="Policies"><a href="#/privacy">Privacy Policy</a><span class="foot-sep" aria-hidden="true">|</span><a href="#/terms">Terms &amp; Conditions</a><span class="foot-sep" aria-hidden="true">|</span><a href="#/returns-policy">Returns &amp; Refunds</a></nav>' +
+      '<p class="foot-copy">&copy; ' + new Date().getFullYear() + ' ' + (brand.legalName || 'ROBAT') + '. All rights reserved.</p>' +
+      (regNo ? '<p class="foot-reg">Registered in Nigeria <span class="foot-sep" aria-hidden="true">|</span> CAC RC: ' + regNo + '</p>' : '') +
+    '</div>' +
   '</div></footer>';
 }
 
@@ -820,6 +827,7 @@ function pageAbout(){
       '<div class="eyebrow">Origin</div>' +
       '<h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Why ROBAT Exists</h2>' +
       '<p class="lead" style="margin-top:18px;">ROBAT started with a simple frustration: most gymwear is designed to photograph well and stops there. We wanted a brand built the other way around — one that starts with fabric, fit and construction, and only earns its look afterward. People. Progress. Purpose. is the philosophy we test every decision against, from a stitch line to a supplier to a headline on this page.</p>' +
+      '<p class="lead" style="margin-top:16px;">ROBAT is a premium performance wear brand operated by ROBAT FIT LTD, a company officially registered with the Corporate Affairs Commission (CAC) of Nigeria under registration number RC 9863999. Our brand is built on the principles of quality, innovation, individuality, and modern design.</p>' +
       '<div class="eyebrow" style="margin-top:40px;">From The Founder</div>' +
       '<p class="lead" style="margin-top:18px;">ROBAT started from something personal — my own journey into fitness.</p>' +
       '<p class="lead" style="margin-top:16px;">When I began working out, the gym became more than just a place to train. It became a space for discipline, confidence, self-expression, and growth. As my passion for fitness grew, so did my interest in what I wore while training. I wanted gym wear that didn&#39;t just perform well, but looked good — something I could feel confident wearing both inside and outside the gym.</p>' +
@@ -853,9 +861,9 @@ function pageAbout(){
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="section-head reveal"><div><div class="eyebrow">Transparency</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">Where We Are Right Now</h2></div></div>' +
     '<div class="stepper reveal">' +
-      '<div class="step active"><span class="stage">Active</span><h4>Research &amp; Development</h4><p>Testing fabric, fit and construction against real training sessions before anything ships. This is where the actual time goes.</p></div>' +
-      '<div class="step"><span class="stage">Next</span><h4>GENERA</h4><p>ROBAT&#39;s first generation of product — a shirt and a short, engineered together. Launching October 31, 2026.</p></div>' +
-      '<div class="step"><span class="stage">Later</span><h4>Open</h4><p>The moment this site stops being just a brand story and starts being a place to actually buy something.</p></div>' +
+      '<div class="step"><span class="stage">Ongoing</span><h4>Research &amp; Development</h4><p>Testing fabric, fit and construction against real training sessions. This is where the actual time goes, and it continues with every release.</p></div>' +
+      '<div class="step active"><span class="stage">Now</span><h4>GENERA Preorders</h4><p>ROBAT&#39;s first generation of product \u2014 the Performance Shirt, the Performance Short and the Complete Set \u2014 is open for preorder in Black, with White and Sand coming soon.</p></div>' +
+      '<div class="step"><span class="stage">Next</span><h4>Full Launch</h4><p>GENERA&#39;s full launch. Launch date: TBD \u2014 announced first in the Journal and the newsletter.</p></div>' +
     '</div>' +
   '</div></section>' +
 
@@ -1484,26 +1492,17 @@ function initGeneraExperience(){
 }
 
 /* ============================================================
-   LEGAL / TRUST PAGES
-   ------------------------------------------------------------
-   Draft content only. Every page here carries a visible notice
-   that it has not been reviewed by a qualified lawyer in the
-   jurisdictions ROBAT operates and sells in. Do not present this
-   copy to customers as finalized legal advice or a finished
-   policy until that review has happened and ROBAT_CONFIG's
-   placeholder fields (legal name, address, currency, shipping,
-   returns, payment provider) are filled in.
+   LEGAL / POLICY PAGES
+   Customer-facing policy text. Business details come from
+   ROBAT_CONFIG.brand; shipping fees and the returns policy text are
+   loaded from the store database (edited in admin.html).
    ============================================================ */
-function legalReviewNotice(){
-  return '<div class="legal-notice" role="note"><strong>Draft — pending legal review.</strong> This page was drafted to reflect how the ROBAT site actually works today. It has not been reviewed by a qualified lawyer in the jurisdictions ROBAT operates and sells in, and must not be treated as finished legal advice or a final policy until that review happens.</div>';
-}
 function legalShell(eyebrow, title, bodyHtml){
   return '' +
   '<section style="padding-top:calc(var(--nav-h) + 56px);"><div class="wrap">' +
     '<div class="reveal" style="max-width:70ch;">' +
       '<div class="eyebrow">' + eyebrow + '</div>' +
       '<h1 style="font-size:clamp(2rem,4.2vw,3rem);text-transform:uppercase;margin-top:12px;">' + title + '</h1>' +
-      legalReviewNotice() +
       '<div class="article-body" style="margin-top:28px;">' + bodyHtml + '</div>' +
     '</div>' +
   '</div></section>';
@@ -1525,11 +1524,11 @@ function pagePrivacy(){
     legalP("Your card, bank or USSD payment details are entered on Paystack’s secure payment page. ROBAT does not see or store them.") +
     legalP("To help prevent abuse of checkout, we store a one-way scrambled (hashed) form of your network address with your order. It is not used to identify you.") +
     legalH2("Why We Collect It") +
-    legalP("To process and deliver your order, confirm your payment, contact you about it, keep a record of the sale, and prevent fraud and abuse. [TODO: have a qualified lawyer confirm the lawful basis for each purpose under applicable data protection law, including the Nigeria Data Protection Act 2023.]") +
+    legalP("To process and deliver your order, confirm your payment, contact you about it, keep a record of the sale, and prevent fraud and abuse.") +
     legalH2("Who Handles It") +
-    legalP("Paystack processes your payment under its own terms and privacy notice. Order records are stored with our database provider, Supabase. Our website is hosted on GitHub Pages. [TODO: name any email or analytics provider once one is chosen — no analytics or tracking script runs on this site at the moment.]") +
-    legalH2("Retention") +
-    legalP("[TODO: confirm how long order records and newsletter sign-ups are kept, and document it here.]") +
+    legalP("Paystack processes your payment under its own terms and privacy notice. Order records are stored with our database provider, Supabase. Our website is hosted on GitHub Pages. Our website fonts are provided by Google Fonts. Receipt emails are sent through Resend, and emails you send us are handled by our email provider, Namecheap Private Email. No analytics or tracking scripts run on this site.") +
+    legalH2("Cookies And Browser Storage") +
+    legalP("We don\u2019t use cookies or tracking. Your browser stores your cart and chosen currency on your own device so they\u2019re remembered between visits; you can clear them at any time in your browser settings.") +
     legalH2("Your Rights") +
     legalP("You can ask what information we hold about you, ask us to correct it, or ask us to delete it (where we are not required to keep it), by emailing <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.") +
     legalH2("Contact") +
@@ -1538,7 +1537,7 @@ function pagePrivacy(){
 }
 
 function pageTerms(){
-  return legalShell("Legal", "Terms of Sale", '' +
+  return legalShell("Legal", "Terms &amp; Conditions", '' +
     legalH2("Who You Are Buying From") +
     legalBusinessLine() +
     legalH2("Preorders") +
@@ -1546,13 +1545,13 @@ function pageTerms(){
     legalH2("Prices And Currency") +
     legalP("Prices are shown in US dollars (USD) by default and can be switched to Nigerian Naira (₦). Payment is always taken in Naira. USD prices are converted at an exchange rate set by ROBAT and shown at checkout, which ROBAT may update from time to time. The total in Naira shown on the checkout page just before you pay is the amount you will be charged.") +
     legalH2("Delivery") +
-    legalP("We currently deliver within Nigeria only. Delivery fees depend on your delivery state and are added automatically at checkout. See the Shipping Policy for the current list.") +
+    legalP("We currently deliver within Nigeria only. Delivery fees depend on your delivery state and are added automatically at checkout. See the <a href=\"#/shipping-policy\">Shipping Policy</a> for the current list.") +
     legalH2("Payment") +
     legalP("Payments are processed by Paystack. Your order is confirmed only after Paystack confirms that payment was successful and ROBAT has verified it; you will see your order number on the confirmation page. Items in your checkout are held for a short time (about 30 minutes) while you pay; if payment is not completed in that time, the hold is released.") +
     legalH2("Returns And Refunds") +
-    legalP("See the Returns &amp; Refunds Policy. [TODO: ROBAT to finalise the policy; it is managed from the admin page.]") +
+    legalP("See our <a href=\"#/returns-policy\">Returns &amp; Refunds Policy</a>.") +
     legalH2("Governing Law") +
-    legalP("[TODO: confirm the jurisdiction whose law governs these terms, and have this page reviewed by a qualified lawyer there.]")
+    legalP("These terms are governed by the laws of the Federal Republic of Nigeria. Any dispute will be handled by the courts of Lagos State.")
   );
 }
 
@@ -1577,7 +1576,7 @@ function pageAccessibilityStatement(){
     legalH2("Our Aim") +
     legalP("ROBAT aims to meet WCAG 2.2 Level AA across this site: semantic landmarks and headings, a skip-to-content link, keyboard-operable navigation and forms, visible focus indicators, labelled form fields, live status announcements for form outcomes, and colors chosen to meet 4.5:1 contrast for normal text.") +
     legalH2("Known Limitations") +
-    legalP("This site currently uses hash-based navigation (URLs like <code>#/shop</code>) rather than fully static per-page URLs, which limits how some assistive tools and search engines index individual pages. [TODO: revisit once real per-route URLs ship \\u2014 see the SEO/routing item in the engineering report.]") +
+    legalP("This site currently uses hash-based navigation (URLs like <code>#/shop</code>) rather than fully static per-page URLs, which limits how some assistive tools and search engines index individual pages.") +
     legalH2("Feedback") +
     legalP("If you hit an accessibility barrier anywhere on this site, tell us at <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a> and we'll work to fix it.")
   );
