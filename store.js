@@ -297,6 +297,7 @@ function paintSizes(el, p){
   });
   if(!p.sizes.length || !anyAvail){ html = '<p class="of-note">Currently sold out in this colour.</p>'; }
   box.innerHTML = html;
+  document.querySelectorAll("[data-size-guide]").forEach(sgRefresh);
   var btn = el.querySelector('button[type="submit"]');
   if(btn){ if(!anyAvail){ btn.setAttribute("aria-disabled", "true"); btn.disabled = true; } else { btn.removeAttribute("aria-disabled"); btn.disabled = false; } }
 }
@@ -306,7 +307,7 @@ document.addEventListener("change", function(e){
   var p = S.products[panel.getAttribute("data-store-panel")];
   if(!p){ return; }
   if(e.target.name === "color"){ panel._sel.color = e.target.value; panel._sel.size = ""; paintSizes(panel, p); }
-  if(e.target.name === "size"){ panel._sel.size = e.target.value; }
+  if(e.target.name === "size"){ panel._sel.size = e.target.value; document.querySelectorAll("[data-size-guide]").forEach(sgRefresh); }
   if(e.target.name === "qty"){ var q = parseInt(e.target.value, 10); panel._sel.qty = q >= 1 && q <= 10 ? q : 1; }
 });
 document.addEventListener("submit", function(e){
@@ -585,28 +586,39 @@ function sgValue(v){
   if(sgUnit === "cm"){ return (Math.round(v * 2.54 * 10) / 10).toFixed(1).replace(/\.0$/, ""); }
   return String(v);
 }
-function sgBody(kinds, group){
+function sgActiveSize(){
+  var r = document.querySelector('[data-store-panel] input[name="size"]:checked');
+  return r ? r.value : "";
+}
+function sgBody(kinds, group, level){
+  var unit = sgUnit === "cm" ? "cm" : "in", active = sgActiveSize(), h = "h" + (level || 3);
   var html = '<div class="sg-controls">' +
+    '<p class="sg-lead">Find your size. Measurements are taken with the garment laid flat.</p>' +
     '<div class="sg-seg" role="group" aria-label="Units">' +
       '<button type="button" data-sg-unit="in" aria-pressed="' + (sgUnit === "in") + '">Inches</button>' +
       '<button type="button" data-sg-unit="cm" aria-pressed="' + (sgUnit === "cm") + '">CM</button>' +
     '</div></div>';
   kinds.forEach(function(kind){
     var c = SIZE_CHARTS[kind], g = c.groups[group];
-    html += '<div class="sg-table-wrap" role="region" tabindex="0" aria-label="' + esc(c.title + " sizes") + '">' +
-      '<table class="sg-table"><caption>' + esc(c.title) + ' <span>(' + (sgUnit === "cm" ? "cm" : "inches") + ')</span></caption>' +
-      '<thead><tr><th scope="col">Size</th>' + g.sizes.map(function(s){ return '<th scope="col">' + esc(s) + '</th>'; }).join("") + '</tr></thead><tbody>' +
-      c.measures.map(function(m, i){
-        return '<tr><th scope="row"><span class="sg-dot sg-dot-' + i + '" aria-hidden="true"></span>' + esc(m[1]) + '</th>' +
-          g[m[0]].map(function(v){ return '<td>' + sgValue(v) + '</td>'; }).join("") + '</tr>';
+    html += '<div class="sg-chart">' +
+      '<' + h + ' class="sg-title">' + esc(c.title) + ' <span>(' + (sgUnit === "cm" ? "centimetres" : "inches") + ')</span></' + h + '>' +
+      '<ul class="sg-grid" role="list">' +
+      g.sizes.map(function(s, si){
+        var on = s === active;
+        return '<li class="sg-card' + (on ? ' is-active' : '') + '"' + (on ? ' aria-current="true"' : '') + '>' +
+          '<div class="sg-size">' + esc(s) + (on ? '<span class="sg-yours">Selected</span>' : '') + '</div>' +
+          '<dl>' + c.measures.map(function(m, i){
+            return '<div class="sg-row"><dt><span class="sg-dot sg-dot-' + i + '" aria-hidden="true"></span>' + esc(m[1]) + '</dt>' +
+              '<dd>' + sgValue(g[m[0]][si]) + '<span class="sg-u">' + unit + '</span></dd></div>';
+          }).join("") + '</dl></li>';
       }).join("") +
-      '</tbody></table></div>';
+      '</ul>';
     if(c.note){ html += '<p class="of-note sg-note">' + esc(c.note) + '</p>'; }
-    html += '<dl class="sg-how">' + c.measures.map(function(m, i){
-      return '<div><dt><span class="sg-dot sg-dot-' + i + '" aria-hidden="true"></span>' + esc(m[1]) + '</dt><dd>' + esc(m[2]) + '</dd></div>';
-    }).join("") + '</dl>';
+    html += '<div class="sg-how" role="list">' + c.measures.map(function(m, i){
+      return '<div class="sg-how-card" role="listitem"><div class="sg-how-t"><span class="sg-dot sg-dot-' + i + '" aria-hidden="true"></span>' + esc(m[1]) + '</div><p>' + esc(m[2]) + '</p></div>';
+    }).join("") + '</div></div>';
   });
-  html += '<p class="of-note">' + (sgUnit === "cm"
+  html += '<p class="of-note sg-foot">' + (sgUnit === "cm"
     ? 'Measurements are converted from inches and may vary by about 2.5 cm (1 inch).'
     : 'All measurements are in inches. Measurements may vary by 1 inch.') +
     ' The sizes you can order are shown in the size selector.</p>';
@@ -615,13 +627,13 @@ function sgBody(kinds, group){
 function sizeGuideHTML(slug, opts){
   var kinds = slug ? (CHARTS_FOR[slug] || []) : ["shirt","short"];
   if(!kinds.length){ return ""; }
-  var open = opts && opts.open;
-  return '<details class="size-guide" data-size-guide data-kinds="' + kinds.join(",") + '" data-group="adult"' + (open ? " open" : "") + '>' +
-    '<summary>Size Guide</summary><div class="sg-body">' + sgBody(kinds, "adult") + '</div></details>';
+  var open = opts && opts.open, level = (opts && opts.level) || 3;
+  return '<details class="size-guide" data-size-guide data-kinds="' + kinds.join(",") + '" data-group="adult" data-level="' + level + '"' + (open ? " open" : "") + '>' +
+    '<summary>Size Guide</summary><div class="sg-body">' + sgBody(kinds, "adult", level) + '</div></details>';
 }
 function sgRefresh(box){
   var kinds = box.getAttribute("data-kinds").split(","), group = box.getAttribute("data-group") || "adult";
-  box.querySelector(".sg-body").innerHTML = sgBody(kinds, group);
+  box.querySelector(".sg-body").innerHTML = sgBody(kinds, group, parseInt(box.getAttribute("data-level"), 10) || 3);
 }
 document.addEventListener("click", function(e){
   var t = e.target.closest ? e.target : null;
@@ -648,7 +660,7 @@ document.addEventListener("click", function(e){
 function pageSizeGuide(){
   return '<section class="article-hero"><div class="wrap"><div class="eyebrow">Fit</div><h1>SIZE GUIDE</h1>' +
     '<p class="lead dek">Measurements for the GENERA Performance Shirt and Performance Short. Lay the garment flat to measure.</p></div></section>' +
-    '<section style="padding-top:24px;"><div class="wrap">' + sizeGuideHTML(null, { open:true }) + '</div></section>';
+    '<section style="padding-top:24px;"><div class="wrap">' + sizeGuideHTML(null, { open:true, level:2 }) + '</div></section>';
 }
 
 function pageCart(){
