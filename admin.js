@@ -245,12 +245,15 @@ function tabProducts(panel){
 
 /* ---------- STOCK ---------- */
 function tabStock(panel){
-  return Promise.all([rest("GET", "products?select=id,name,sort_order&order=sort_order"), rest("GET", "product_colors?select=*&order=sort_order"), rest("GET", "variants?select=*")]).then(function(res){
-    var products = res[0], colors = res[1], variants = res[2];
+  return Promise.all([rest("GET", "products?select=id,name,sort_order&order=sort_order"), rest("GET", "product_colors?select=*&order=sort_order"), rest("GET", "variants?select=*"),
+      rest("GET", "bundle_components?select=*").catch(function(){ return []; })]).then(function(res){
+    var products = res[0], colors = res[1], variants = res[2], bundles = res[3] || [];
     clear(panel);
     panel.appendChild(h("h1", { text:"Stock" }));
     panel.appendChild(h("p", { class:"small", text:"Type how many you can sell for each colour and size. 0 means sold out. “Held” = in someone’s checkout right now (released after 30 minutes if unpaid). Changes save as soon as you leave the box." }));
     products.forEach(function(p){
+      var comps = bundles.filter(function(b){ return b.bundle_id === p.id; });
+      if(comps.length){ panel.appendChild(bundleStockCard(p, comps, products, colors, variants)); return; }
       var cols = colors.filter(function(c){ return c.product_id === p.id; });
       var vs = variants.filter(function(v){ return v.product_id === p.id; });
       var sizes = []; vs.forEach(function(v){ if(sizes.indexOf(v.size) === -1){ sizes.push(v.size); } });
@@ -285,6 +288,37 @@ function tabStock(panel){
         h("div", { class:"toolbar", style:"margin-top:14px;" }, newSize, addSize)));
     });
   });
+}
+
+/* a set's stock is worked out from the pieces it is made of (read-only) */
+function bundleStockCard(p, comps, products, colors, variants){
+  function nameOf(id){ var x = products.filter(function(q){ return q.id === id; })[0]; return x ? x.name : "item"; }
+  function free(pid, color, size){
+    var v = variants.filter(function(x){ return x.product_id === pid && x.color === color && x.size === size; })[0];
+    return v ? Math.max(0, v.stock - v.reserved) : null;
+  }
+  var sizes = [];
+  variants.filter(function(v){ return v.product_id === comps[0].component_id; }).forEach(function(v){
+    if(sizes.indexOf(v.size) === -1 && comps.every(function(c){ return variants.some(function(x){ return x.product_id === c.component_id && x.size === v.size; }); })){ sizes.push(v.size); }
+  });
+  sizes.sort(function(a,b){ var x = SIZE_ORDER.indexOf(a), y = SIZE_ORDER.indexOf(b); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y) || a.localeCompare(b); });
+  var cols = colors.filter(function(c){ return c.product_id === p.id && c.status !== "hidden"; });
+  var tbody = h("tbody");
+  cols.forEach(function(c){
+    var tr = h("tr", {}, h("th", { scope:"row", text:c.name + (c.status === "available" ? "" : " (" + c.status.replace("_"," ") + ")") }));
+    sizes.forEach(function(s){
+      var n = Infinity;
+      comps.forEach(function(k){ var f = free(k.component_id, c.name, s); n = Math.min(n, f == null ? 0 : Math.floor(f / k.qty)); });
+      tr.appendChild(h("td", { text: String(n === Infinity ? 0 : n) }));
+    });
+    tbody.appendChild(tr);
+  });
+  var made = comps.map(function(k){ return k.qty + " \u00D7 " + nameOf(k.component_id); }).join(" + ");
+  return h("section", { class:"card" }, h("h2", { text:p.name }),
+    h("p", { class:"small", text:"This set is made from " + made + ". Each set sold takes those pieces out of stock (same colour and size), so it has no stock of its own. Sets you can sell right now (after items held in checkouts):" }),
+    h("div", { class:"table-wrap" }, h("table", { class:"admin-table" },
+      h("thead", {}, h("tr", {}, h("th", { scope:"col", text:"Colour" }), sizes.map(function(s){ return h("th", { scope:"col", text:s }); }))), tbody)),
+    h("p", { class:"small", text:"To sell more sets, add stock to the pieces above." }));
 }
 
 /* ---------- SHIPPING ---------- */

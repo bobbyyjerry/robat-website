@@ -69,7 +69,9 @@ function loadCatalog(force){
     api("product_colors?select=*&order=sort_order"),
     api("variants?select=product_id,color,size,stock,reserved"),
     api("shipping_zones?select=*&active=eq.true&order=state"),
-    api("settings?select=key,value")
+    api("settings?select=key,value"),
+    /* sets made from other products; empty if the database hasn't been updated yet */
+    api("bundle_components?select=bundle_id,component_id,qty").catch(function(){ return []; })
   ]).then(function(res){
     var byId = {}, products = {};
     res[0].forEach(function(p){
@@ -86,12 +88,38 @@ function loadCatalog(force){
       var slug = byId[c.product_id];
       if(slug && c.status !== "hidden"){ products[slug].colors.push({ name:c.name, status:c.status }); }
     });
+    var stockById = {}, sizesById = {};
     res[2].forEach(function(v){
+      var free = Math.max(0, v.stock - v.reserved);
+      (stockById[v.product_id] = stockById[v.product_id] || {})[v.color + "|" + v.size] = free;
+      (sizesById[v.product_id] = sizesById[v.product_id] || []).indexOf(v.size) === -1 && sizesById[v.product_id].push(v.size);
       var slug = byId[v.product_id];
       if(!slug){ return; }
       var p = products[slug];
-      p.stock[v.color + "|" + v.size] = Math.max(0, v.stock - v.reserved);
+      p.stock[v.color + "|" + v.size] = free;
       if(p.sizes.indexOf(v.size) === -1){ p.sizes.push(v.size); }
+    });
+    /* a set (e.g. the Complete Set) is available in a colour/size only as far as
+       every piece it is made of is in stock: sets = lowest of (piece stock / pieces per set) */
+    var parts = {};
+    (res[5] || []).forEach(function(b){ (parts[b.bundle_id] = parts[b.bundle_id] || []).push(b); });
+    Object.keys(parts).forEach(function(bid){
+      var slug = byId[bid]; if(!slug){ return; }
+      var p = products[slug], comps = parts[bid];
+      p.stock = {}; p.sizes = []; p.isSet = true;
+      var first = sizesById[comps[0].component_id] || [];
+      first.forEach(function(size){
+        if(!comps.every(function(c){ return (sizesById[c.component_id] || []).indexOf(size) !== -1; })){ return; }
+        p.sizes.push(size);
+        p.colors.forEach(function(col){
+          var key = col.name + "|" + size, n = Infinity;
+          comps.forEach(function(c){
+            var have = (stockById[c.component_id] || {})[key];
+            n = Math.min(n, have == null ? 0 : Math.floor(have / c.qty));
+          });
+          if(n !== Infinity){ p.stock[key] = n; }
+        });
+      });
     });
     Object.keys(products).forEach(function(k){
       products[k].sizes.sort(function(a,b){
