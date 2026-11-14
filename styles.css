@@ -134,6 +134,28 @@
   .hero-ctas .btn.ghost:hover{border-color:#f3ead4; color:#f3ead4; background:transparent;}
   .hero::before{content:''; position:absolute; inset:0; background:linear-gradient(0deg, rgba(30,20,12,.92) 0%, rgba(30,20,12,.15) 55%, rgba(30,20,12,.35) 100%); z-index:1;}
 
+  .preorder-countdown{position:relative; z-index:2; width:fit-content; max-width:100%; margin-top:24px;
+    padding:14px clamp(12px, 2.4vw, 24px); border:1px solid rgba(243,234,212,.42);
+    background:rgba(42,32,19,.9);}
+  .preorder-countdown h2{font-size:clamp(1.25rem, 2.1vw, 1.6rem); text-transform:uppercase; line-height:1.1;}
+  .preorder-countdown p{margin:6px 0 0; font-size:13px;}
+  .preorder-countdown time{font-weight:700;}
+  .preorder-timezone{white-space:nowrap;}
+  .preorder-clock{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); margin:10px 0; padding:7px 0;
+    border-block:1px solid rgba(243,234,212,.25);}
+  .preorder-clock[hidden]{display:none;}
+  .preorder-clock > div{display:grid; min-width:0; padding:0 4px; text-align:center;}
+  .preorder-clock > div + div{border-left:1px solid rgba(243,234,212,.25);}
+  .preorder-count{font:700 clamp(1.5rem, 3vw, 2.45rem)/1.05 var(--disp); font-variant-numeric:tabular-nums;}
+  .preorder-unit{font:500 clamp(.56rem, 1.3vw, .67rem)/1.5 var(--mono); text-transform:uppercase;}
+  .home-hero .hero-ctas{margin-top:22px;}
+  @media (max-width:640px){
+    .home-hero{padding-bottom:24px;}
+    .home-hero .hero-inner{padding:16px 18px 0;}
+    .home-hero .hero-ctas{gap:8px;}
+    .home-hero .hero-ctas .btn{padding:12px 14px;}
+  }
+
   /* ---------- sections ---------- */
   section{padding:96px 0;}
   @media (max-width:640px){ section{padding:64px 0;} }

@@ -49,8 +49,8 @@ var ROBAT_CONFIG = {
   },
 
   launch: {
-    targetDate: "2026-10-31", // stated target — NOT yet reconfirmed this session
-    confirmed: false // set true only once the user explicitly reconfirms the date
+    preorderOpensAt: "2026-11-16T00:00:00+01:00",
+    fullLaunchDate: "2026-12-07"
   },
 
   shipping: {
@@ -75,10 +75,10 @@ var ROBAT_CONFIG = {
 };
 
 /* Small helpers so templates don't repeat this logic. */
-function robatFormatLaunchDate(){
-  if(!ROBAT_CONFIG.launch.confirmed){ return "date to be announced"; }
-  var d = new Date(ROBAT_CONFIG.launch.targetDate + "T00:00:00");
-  return d.toLocaleDateString("en-GB", {day:"numeric", month:"long", year:"numeric"});
+function robatFormatReleaseDate(date){
+  return new Date(date).toLocaleDateString("en-GB", {
+    timeZone:"Africa/Lagos", day:"numeric", month:"long", year:"numeric"
+  });
 }
 /* Prices come from the database now (see store.js); this stays only so
    older template code that calls it cannot break. */

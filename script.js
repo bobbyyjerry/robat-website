@@ -12,6 +12,14 @@
 var MARK_BLACK = "images/logo-black.png";
 var MARK_CREAM = "images/logo-cream.png";
 
+var RELEASE = ROBAT_CONFIG.launch;
+var PREORDER_START = Date.parse(RELEASE.preorderOpensAt);
+var PREORDER_DATE = robatFormatReleaseDate(RELEASE.preorderOpensAt);
+var LAUNCH_DATE = robatFormatReleaseDate(RELEASE.fullLaunchDate);
+var PREORDER_SCHEDULE = "Limited preorders for GENERA in Black begin on " + PREORDER_DATE + ". The full launch is on " + LAUNCH_DATE + ".";
+var HOME_DESCRIPTION = "ROBAT is a premium performance gymwear brand from Lagos, Nigeria. " + PREORDER_SCHEDULE;
+var preorderCountdownTimeout;
+
 /* ============================================================
    CAMPAIGN PHOTOGRAPHY — real ROBAT lifestyle/campaign imagery
    (user-supplied), embedded as data URIs. Used as cover-fit
@@ -123,8 +131,8 @@ var ARTICLES = [
     title: "Why GENERA Is A Preorder",
     dek: "How GENERA is being released, and why it starts as a limited preorder.",
     body: [
-      "The easiest thing we could do is put a countdown clock on this page and a flash-sale banner next to it. Manufactured urgency is a well-worn playbook \u2014 it works, it drives signups, and it costs nothing to build. We are not doing it, and the reason is the same one behind every honest caption on this site: we would rather show you exactly where things stand than dress up an unfinished process as a finished one.",
-      "Where things actually stand is this. GENERA, ROBAT&#39;s first generation of product, is available as a limited preorder in the Shop, in Black only, with White and Sand coming soon. Preorder prices are lower than the original prices, and you pay securely online. Because it is a preorder, delivery timelines are confirmed after you order \u2014 we would rather tell you that plainly than promise a date we cannot yet keep.",
+      "The countdown on our homepage shows when preorders are scheduled to begin in Lagos.",
+      PREORDER_SCHEDULE + " White and Sand are coming soon. Preorder prices are lower than the original prices, and you pay securely online. Because it is a preorder, delivery timelines are confirmed after you order \u2014 we would rather tell you that plainly than promise a date we cannot yet keep.",
       "A preorder is a slower way to sell than shipping from a warehouse shelf. It is also the way we know to make sure the first thing you actually receive from ROBAT holds up to the standard the rest of this site claims to have.",
       "So this page will stay plain instead of hyped. The Shop, the Journal and the newsletter are the places real updates land first \u2014 not a hype cycle, just what is actually true, when it becomes true."
     ]
@@ -215,7 +223,7 @@ var VALUES = [
     short: "Placeholder photography stays labelled as a placeholder. We&#39;d rather be plain than pretend.",
     body: [
       "Honesty is the value that shapes this entire site more than any other. Every image that is not yet real photography stays plainly captioned instead of pretending to be a finished campaign. Every page that does not yet have a confirmed date says so plainly instead of inventing one.",
-      "It would be easy to dress an early-stage brand up as a finished one &mdash; better-looking photos borrowed from elsewhere, a countdown clock, a launch date picked to create urgency. We are choosing not to, on the theory that a brand people can trust from day one is worth more than a brand that looks impressive on day one.",
+      "The dates we publish give people a clear timeline for following the brand. The homepage countdown shows the start of preorders in Lagos time.",
       "That is also why this page exists as a real, separate page instead of a single paragraph buried on the About tab. If honesty is a value we claim, it has to be visible in how the site itself is built, not just in what it says about itself."
     ]
   },
@@ -391,8 +399,8 @@ var FAQS = [
   {
     slug: "availability", category: "engineered", q: "Will ROBAT products be available to buy?",
     body: [
-      "Yes &mdash; GENERA, ROBAT&#39;s first generation of product, is available through the Shop as a limited preorder in Black, with White and Sand coming soon. You pay securely online through Paystack, and delivery timelines are confirmed after you order.",
-      "A wider, fully automated launch is targeted but not yet confirmed. The Journal and the newsletter are the two places real updates land first as that gets closer &mdash; not a countdown clock, just what is actually true."
+      PREORDER_SCHEDULE,
+      "White and Sand are coming soon. You pay securely online through Paystack, and delivery timelines are confirmed after you order."
     ]
   },
   {
@@ -405,15 +413,14 @@ var FAQS = [
   {
     slug: "stay-updated", category: "engineered", q: "How can I stay updated?",
     body: [
-      "The Journal and the newsletter are the two places real updates land first &mdash; no follower-only drops, no hype countdowns, no early access reserved for the loudest accounts.",
-      "Both exist specifically so that anyone following the brand&#39;s actual progress hears about it at the same time, whether that is a fabric update, a manufacturing decision, or eventually a launch date."
+      "Follow the Journal or sign up for the newsletter for updates on fabrics, manufacturing and future releases.",
+      "The homepage has the confirmed dates for GENERA preorders and the full launch."
     ]
   },
   {
     slug: "launch-date", category: "contact", q: "When does ROBAT launch?",
     body: [
-      "GENERA, ROBAT&#39;s first generation of product, is available to preorder through the Shop &mdash; that part is not waiting on a date.",
-      "The full launch date is TBD \u2014 it has not been confirmed yet, so we are not printing a date here as a promise. The Journal and the newsletter are where the confirmed date lands first, the moment it is actually locked in.",
+      "GENERA launches on " + LAUNCH_DATE + ". Limited preorders in Black begin on " + PREORDER_DATE + " at midnight, Lagos time.",
       "Limited. Intentional. Made to move &mdash; that part has not changed."
     ]
   },
@@ -531,6 +538,7 @@ function setSEO(title, desc){
 }
 
 function render(){
+  window.clearTimeout(preorderCountdownTimeout);
   teardownGeneraExperience();
   var route = currentRoute();
   var app = document.getElementById("app");
@@ -544,7 +552,7 @@ function render(){
   var productMatch = route.match(/^\/shop\/([a-z-]+)$/);
 
   if(route === "/" || route === ""){
-    html = pageHome(); setSEO("Premium Performance Wear | Shop GENERA", "ROBAT is a premium performance gymwear brand from Lagos, Nigeria. Shop the GENERA Performance Shirt, Short and Complete Set, now on preorder, with delivery across Nigeria.");
+    html = pageHome(); setSEO("Premium Performance Wear | Shop GENERA", HOME_DESCRIPTION);
   } else if(route === "/about"){
     html = pageAbout(); setSEO("About — People. Progress. Purpose.", "ROBAT's philosophy: People. Progress. Purpose.");
   } else if(pillarMatch && getPillar(pillarMatch[1])){
@@ -601,6 +609,7 @@ function render(){
   }
 
   app.innerHTML = navHTML() + "<main id=\"main-content\" tabindex=\"-1\">" + html + "</main>" + footerHTML();
+  if(route === "/"){ startPreorderCountdown(app); }
   wireNav();
   wireNewsletterForms();
   if(window.RobatStore){ RobatStore.mount(app); }
@@ -729,7 +738,7 @@ function newsletterHTML(){
   return '' +
   '<section><div class="wrap"><div class="newsletter reveal"><div class="inner">' +
     '<h2>Stay Close To The Build</h2>' +
-    '<p>GENERA is available to preorder in the Shop. This list is for occasional notes when the engineering, the philosophy, or the Journal moves forward \u2014 no spam, and you can ask to be removed at any time by emailing us.</p>' +
+    '<p>This list is for occasional notes when the engineering, the philosophy, or the Journal moves forward \u2014 no spam, and you can ask to be removed at any time by emailing us.</p>' +
     '<form class="newsletter-form"><label class="visually-hidden" for="newsletter-email">Email address</label><input id="newsletter-email" type="email" placeholder="you@email.com" required><button class="btn" type="submit">Notify Me</button></form>' +
     '<div class="newsletter-msg form-status" role="status" aria-live="polite"></div>' +
   '</div></div></div></section>';
@@ -738,9 +747,52 @@ function newsletterHTML(){
 /* ============================================================
    PAGES
    ============================================================ */
+function preorderCountdownHTML(){
+  return '<div class="preorder-countdown" aria-labelledby="preorder-title">' +
+    '<h2 id="preorder-title">GENERA release dates</h2>' +
+    '<p>Preorders <time datetime="' + RELEASE.preorderOpensAt + '">' + PREORDER_DATE + '</time> <span class="preorder-timezone">· Midnight WAT</span></p>' +
+    '<div class="preorder-clock" role="timer" aria-label="Time until preorders begin" hidden>' +
+      ["Days", "Hours", "Minutes", "Seconds"].map(function(unit){
+        return '<div><span class="preorder-count">00</span><span class="preorder-unit">' + unit + '</span></div>';
+      }).join("") +
+    '</div>' +
+    '<p>Full launch <time datetime="' + RELEASE.fullLaunchDate + '">' + LAUNCH_DATE + '</time></p>' +
+  '</div>';
+}
+
+function startPreorderCountdown(root){
+  var clock = root.querySelector(".preorder-clock");
+  var heading = root.querySelector("#preorder-title");
+  var digits = clock.querySelectorAll(".preorder-count");
+
+  function tick(){
+    var remaining = PREORDER_START - Date.now();
+    if(remaining <= 0){
+      clock.hidden = true;
+      heading.textContent = "GENERA release dates";
+      return;
+    }
+    var seconds = Math.ceil(remaining / 1000);
+    var values = [
+      Math.floor(seconds / 86400),
+      Math.floor(seconds / 3600) % 24,
+      Math.floor(seconds / 60) % 60,
+      seconds % 60
+    ];
+    digits.forEach(function(digit, i){
+      digit.textContent = String(values[i]).padStart(2, "0");
+    });
+    preorderCountdownTimeout = window.setTimeout(tick, remaining % 1000 || 1000);
+  }
+  if(Date.now() >= PREORDER_START){ return; }
+  heading.textContent = "GENERA preorder countdown";
+  clock.hidden = false;
+  tick();
+}
+
 function pageHome(){
   return '' +
-  '<section class="hero">' +
+  '<section class="hero home-hero">' +
     visual({eager:true, alt:"ROBAT athlete training in GENERA performance wear, campaign photograph.", caption:"CAMPAIGN — ROBAT STUDIO", photo:PHOTO_HOME_HERO}) +
     '<div class="hero-inner">' +
       '<img class="hero-mark" src="' + MARK_CREAM + '" alt="" aria-hidden="true">' +
@@ -748,7 +800,8 @@ function pageHome(){
       '<div class="hero-eyebrow">ROBAT — Performance Gymwear</div>' +
       '<h1>ENGINEERED<br>FOR MORE.</h1>' +
       '<p class="hero-sub">Performance built for training. Designed for everything beyond it.</p>' +
-      '<div class="hero-ctas"><a href="#/shop" class="btn solid">Shop Now</a><a href="#/about" class="btn ghost">Our Philosophy</a><a href="#/engineered" class="btn ghost">Engineered</a></div>' +
+      preorderCountdownHTML() +
+      '<div class="hero-ctas"><a href="#/shop" class="btn solid">Explore GENERA</a><a href="#/about" class="btn ghost">Our Philosophy</a><a href="#/engineered" class="btn ghost">Engineered</a></div>' +
     '</div></div>' +
   '</section>' +
 
@@ -866,8 +919,8 @@ function pageAbout(){
     '<div class="section-head reveal"><div><div class="eyebrow">Transparency</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">Where We Are Right Now</h2></div></div>' +
     '<div class="stepper reveal">' +
       '<div class="step"><span class="stage">Ongoing</span><h4>Research &amp; Development</h4><p>Testing fabric, fit and construction against real training sessions. This is where the actual time goes, and it continues with every release.</p></div>' +
-      '<div class="step active"><span class="stage">Now</span><h4>GENERA Preorders</h4><p>ROBAT&#39;s first generation of product \u2014 the Performance Shirt, the Performance Short and the Complete Set \u2014 is open for preorder in Black, with White and Sand coming soon.</p></div>' +
-      '<div class="step"><span class="stage">Next</span><h4>Full Launch</h4><p>GENERA&#39;s full launch. Launch date: TBD \u2014 announced first in the Journal and the newsletter.</p></div>' +
+      '<div class="step"><span class="stage">' + PREORDER_DATE + '</span><h4>GENERA Preorders</h4><p>Limited preorders for the Performance Shirt, the Performance Short and the Complete Set begin in Black. White and Sand are coming soon.</p></div>' +
+      '<div class="step"><span class="stage">' + LAUNCH_DATE + '</span><h4>Full Launch</h4><p>GENERA&#39;s full launch.</p></div>' +
     '</div>' +
   '</div></section>' +
 
@@ -1151,7 +1204,7 @@ function pageShop(){
     '<div class="hero-inner"><div class="wrap">' +
       '<div class="hero-eyebrow">GENERA \u2014 First Release</div>' +
       '<h1 style="font-size:clamp(2.4rem,6.5vw,5rem);">SHOP.</h1>' +
-      '<p class="hero-sub">ROBAT&#39;s first generation of product. Limited. Intentional. Made to move.</p>' +
+      '<p class="hero-sub">' + PREORDER_SCHEDULE + '</p>' +
     '</div></div>' +
   '</section>' +
 
@@ -1162,7 +1215,7 @@ function pageShop(){
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="reveal" style="max-width:70ch;">' +
       '<div class="eyebrow">Availability</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Limited First Run</h2>' +
-      '<p class="lead" style="margin-top:16px;">GENERA is available as a limited preorder, in Black only, with White and Sand coming soon. Preorder prices are lower than the original prices. You pay securely online through Paystack, and delivery timelines are confirmed after you order.</p>' +
+      '<p class="lead" style="margin-top:16px;">White and Sand are coming soon. Preorder prices are lower than the original prices. You pay securely online through Paystack, and delivery timelines are confirmed after you order.</p>' +
       '<a href="#/faq/launch-date" class="link" style="display:inline-block;margin-top:22px;">More On The Launch</a>' +
     '</div>' +
   '</div></section>';
@@ -1546,7 +1599,7 @@ function pageTerms(){
     legalH2("Who You Are Buying From") +
     legalBusinessLine() +
     legalH2("Preorders") +
-    legalP("GENERA is currently offered as a limited preorder. The preorder price is shown next to the original price. Delivery timelines are confirmed after you order. Colours marked “Coming Soon” cannot be ordered yet.") +
+    legalP("Limited preorders for GENERA begin on " + PREORDER_DATE + ". The preorder price is shown next to the original price. Delivery timelines are confirmed after you order. Colours marked “Coming Soon” cannot be ordered yet.") +
     legalH2("Prices And Currency") +
     legalP("Prices are shown in US dollars (USD) by default and can be switched to Nigerian Naira (₦). Payment is always taken in Naira. USD prices are converted at an exchange rate set by ROBAT and shown at checkout, which ROBAT may update from time to time. The total in Naira shown on the checkout page just before you pay is the amount you will be charged.") +
     legalH2("Delivery") +
