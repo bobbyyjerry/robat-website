@@ -84,7 +84,7 @@ function receipt(o){
   box.appendChild(kv("Payment reference", o.reference));
   box.appendChild(summary(o));
   var to = el("div", "os-receipt-to");
-  to.appendChild(el("div", "of-label", "Delivering to"));
+  to.appendChild(el("div", "of-label", o.stock_review_status ? "Delivery address" : "Delivering to"));
   [o.name, o.ship_line1, [o.ship_city, o.ship_state].filter(Boolean).join(", "), o.phone].forEach(function(line){ if(line){ to.appendChild(el("div", null, line)); } });
   box.appendChild(to);
   var biz = (window.ROBAT_CONFIG && window.ROBAT_CONFIG.brand) || {};
@@ -95,14 +95,24 @@ function render(o, gateway){
   if(o.payment_status === "paid"){
     try { window.localStorage.removeItem("robat_cart_v1"); window.sessionStorage.removeItem("robat_checkout_key"); window.sessionStorage.removeItem("robat_checkout_details"); } catch(e){}
     var nodes = [];
+    var underReview = o.stock_review_status === "pending";
+    var cancelled = o.stock_review_status === "cancelled";
     if(o.is_test){ var tb = el("p", "of-msg is-error", "TEST ORDER \u2014 this was paid with Paystack test mode. No real money was taken."); tb.setAttribute("role", "alert"); nodes.push(tb); }
-    nodes.push(el("p", "lead", "Thank you" + (o.name ? ", " + o.name.split(" ")[0] : "") + ". Your payment has been verified and your order is confirmed."));
-    nodes.push(progress(o.fulfilment_status));
+    if(underReview){
+      nodes.push(el("p", "lead", "We received your payment after the stock hold ended. ROBAT is checking availability and will contact you about next steps. Please don’t pay again."));
+    } else if(cancelled){
+      nodes.push(el("p", "lead", "ROBAT cancelled this order after reviewing stock availability. For help with your refund, contact us with your order number."));
+    } else {
+      nodes.push(el("p", "lead", "Thank you" + (o.name ? ", " + o.name.split(" ")[0] : "") + ". Your payment has been verified and your order is confirmed."));
+      nodes.push(progress(o.fulfilment_status));
+    }
     nodes.push(receipt(o));
     nodes.push(el("p", "of-note", o.receipt_sent
       ? "We\u2019ve emailed a copy of this receipt to " + (o.email || "you") + ". If you can\u2019t find it, check your spam folder."
       : "Keep this receipt: use the button below to print it or save it as a PDF."));
-    nodes.push(el("p", "of-note", "Delivery timelines will be confirmed after your order, and we will contact you using the details you gave us."));
+    if(!underReview && !cancelled){
+      nodes.push(el("p", "of-note", "Delivery timelines will be confirmed after your order, and we will contact you using the details you gave us."));
+    }
     nodes.push(contactLine());
     var actions = el("div", "os-actions");
     var printBtn = el("button", "btn solid", "Print / save receipt as PDF"); printBtn.type = "button";
@@ -110,7 +120,9 @@ function render(o, gateway){
     actions.appendChild(printBtn);
     actions.appendChild(link("index.html#/shop", "Continue shopping", "btn"));
     nodes.push(actions);
-    show("Order confirmed", "Payment confirmed", nodes);
+    if(underReview){ show("Payment received", "Payment received, order under review", nodes); }
+    else if(cancelled){ show("Order status", "Order cancelled", nodes); }
+    else { show("Order confirmed", "Payment confirmed", nodes); }
     return true;
   }
   if(o.payment_status === "failed"){
@@ -121,9 +133,10 @@ function render(o, gateway){
     return true;
   }
   if(o.payment_status === "expired"){
+    if(gateway === "ongoing" || gateway === "pending" || gateway === "processing" || gateway === "success"){ return false; }
     freshCheckout();
     show("Order status", "This checkout expired", [
-      el("p", "lead", "We held your items for a short time but didn’t receive a payment, so the hold was released. Your cart is still saved."),
+      el("p", "lead", "The stock hold ended. If you already paid, refresh this page or contact ROBAT with your order number before paying again. Your cart is still saved."),
       link("index.html#/cart", "Back to cart", "btn solid"), contactLine()]);
     return true;
   }
@@ -142,7 +155,7 @@ function showPendingFinal(o){
   var num = el("p", "os-number"); num.appendChild(document.createTextNode("Order number: ")); num.appendChild(el("strong", null, o ? o.order_number : orderNumber));
   show("Order status", "Payment pending", [
     el("p", "lead", "We haven’t received confirmation of your payment yet. This can take a few minutes with bank transfers or if you closed the payment page early."),
-    el("p", null, "Please don’t pay a second time. If money left your account, your order will be confirmed automatically once Paystack tells us — you can refresh this page in a few minutes."),
+    el("p", null, "Please don’t pay a second time. If money left your account, you can refresh this page in a few minutes to check the result."),
     num, contactLine(), link("index.html#/cart", "Back to cart", "btn")]);
 }
 function showProblem(msg){

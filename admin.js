@@ -111,7 +111,7 @@ function showTab(name){
   root.appendChild(tabs); root.appendChild(panel);
   say("Loading…");
   var fn = { orders:tabOrders, products:tabProducts, stock:tabStock, shipping:tabShipping, settings:tabSettings }[name];
-  fn(panel).then(function(){ say(""); }).catch(function(e){ if(e.message !== "expired"){ say("Couldn’t load: " + e.message, true); } });
+  return fn(panel).then(function(){ say(""); }).catch(function(e){ if(e.message !== "expired"){ say("Couldn’t load: " + e.message, true); } });
 }
 function saveWrap(btn, p, okMsg){
   btn.disabled = true;
@@ -120,9 +120,18 @@ function saveWrap(btn, p, okMsg){
 function num(v){ var n = Number(v); return isFinite(n) ? n : NaN; }
 
 /* ---------- ORDERS ---------- */
+var STOCK_REVIEW_FLAG = "late_payment_out_of_stock";
+var STOCK_REFUND_FLAG = "late_payment_refund_recorded";
+
+function verifyOrderPayment(order){
+  return fetch(CFG.url + "/functions/v1/verify-payment", { method:"POST", headers:{ "Content-Type":"application/json", apikey:CFG.publishableKey },
+    body: JSON.stringify({ order_number:order.order_number, token:order.public_token }) })
+    .then(function(r){ if(!r.ok){ throw new Error("Payment lookup failed."); } return r.json(); });
+}
+
 function tabOrders(panel){
   return rest("GET", "orders?select=*,order_items(*)&order=created_at.desc&limit=300").then(function(orders){
-    var filter = h("select", { id:"of" }, [["all","All"],["paid","Paid"],["pending","Pending"],["failed","Failed"],["expired","Expired"]].map(function(o){ return h("option", { value:o[0], text:o[1] }); }));
+    var filter = h("select", { id:"of" }, [["all","All"],["stock-review","Needs stock review"],["paid","Paid"],["pending","Pending"],["failed","Failed"],["expired","Expired"]].map(function(o){ return h("option", { value:o[0], text:o[1] }); }));
     var search = h("input", { id:"os", type:"text", placeholder:"Order no., name or email" });
     var refreshBtn = h("button", { type:"button", class:"btn", text:"Refresh", onclick:function(){ showTab("orders"); } });
     var wrap = h("div", { class:"table-wrap" });
@@ -130,25 +139,33 @@ function tabOrders(panel){
       clear(wrap);
       var f = filter.value, s = search.value.trim().toLowerCase();
       var rows = orders.filter(function(o){
-        return (f === "all" || o.payment_status === f) &&
+        return (f === "all" || o.payment_status === f || f === "stock-review" && o.review_flag === STOCK_REVIEW_FLAG) &&
           (!s || (o.order_number + " " + o.customer_name + " " + o.customer_email).toLowerCase().indexOf(s) !== -1);
       });
       if(!rows.length){ wrap.appendChild(h("p", { class:"small", style:"padding:16px;", text:"No orders match." })); return; }
       var tbody = h("tbody");
       rows.forEach(function(o){
+        var needsStock = o.review_flag === STOCK_REVIEW_FLAG;
+        var refundRecorded = o.review_flag === STOCK_REFUND_FLAG;
         var detail = h("tr", { hidden:"true" }, h("td", { colspan:"6" }, orderDetail(o)));
         var toggle = h("button", { type:"button", class:"link-btn", text:"Details", "aria-expanded":"false", onclick:function(){
           var open = detail.hidden; detail.hidden = !open; toggle.setAttribute("aria-expanded", String(open)); } });
-        var ful = h("select", { "aria-label":"Fulfilment status for " + o.order_number, onchange:function(){
-          rest("PATCH", "orders?id=eq." + o.id, { fulfilment_status: ful.value }).then(function(){ say("Updated " + o.order_number + "."); o.fulfilment_status = ful.value; }).catch(function(e){ say("Couldn’t update: " + e.message, true); });
-        }}, ["new","processing","shipped","delivered","cancelled"].map(function(s2){ return h("option", { value:s2, text:s2, selected: s2 === o.fulfilment_status ? "selected" : null }); }));
-        ful.value = o.fulfilment_status;
+        var ful;
+        if(needsStock || refundRecorded){
+          ful = h("span", { text:needsStock ? "On hold" : "Cancelled" });
+        } else {
+          ful = h("select", { "aria-label":"Fulfilment status for " + o.order_number, onchange:function(){
+            rest("PATCH", "orders?id=eq." + o.id, { fulfilment_status: ful.value }).then(function(){ say("Updated " + o.order_number + "."); o.fulfilment_status = ful.value; }).catch(function(e){ say("Couldn’t update: " + e.message, true); });
+          }}, ["new","processing","shipped","delivered","cancelled"].map(function(s2){ return h("option", { value:s2, text:s2 }); }));
+          ful.value = o.fulfilment_status;
+        }
         tbody.appendChild(h("tr", {},
           h("td", { text:new Date(o.created_at).toLocaleString("en-GB", { dateStyle:"short", timeStyle:"short" }) }),
           h("td", {}, h("strong", { text:o.order_number }), o.is_test ? h("span", { class:"badge test", text:"TEST" }) : null),
           h("td", { text:o.customer_name }),
           h("td", { text:money(o.total_ngn) }),
-          h("td", {}, h("span", { class:"badge " + o.payment_status, text: o.payment_status === "pending" ? "awaiting payment" : o.payment_status }), o.review_flag ? h("span", { class:"badge flag", text:"review" }) : null),
+          h("td", {}, h("span", { class:"badge " + o.payment_status, text: o.payment_status === "pending" ? "awaiting payment" : o.payment_status }),
+            o.review_flag && !refundRecorded ? h("span", { class:"badge flag", text:needsStock ? "stock review" : "review" }) : null),
           h("td", {}, ful, " ", toggle)));
         tbody.appendChild(detail);
       });
@@ -163,6 +180,37 @@ function tabOrders(panel){
     panel.appendChild(wrap); draw();
   });
 }
+
+function stockReviewActions(order){
+  var approve = h("button", { type:"button", class:"btn solid", text:"Allocate stock and approve" });
+  var cancel = h("button", { type:"button", class:"btn", text:"Record cancellation after refund" });
+  function resolve(action){
+    approve.disabled = cancel.disabled = true;
+    rest("POST", "rpc/resolve_late_payment_stock_review", { p_order_id:order.id, p_action:action }, "return=representation").then(function(result){
+      if(result === "stock_unavailable"){
+        say("Stock is still unavailable. The order remains under review.", true);
+        return;
+      }
+      if(result === "approved"){
+        return verifyOrderPayment(order).then(function(){ return true; }, function(){ return false; }).then(function(checked){
+          return showTab("orders").then(function(){
+            say(checked ? order.order_number + " approved and moved to processing." : "The order was approved. The confirmation email could not be checked.", !checked);
+          });
+        });
+      }
+      return showTab("orders").then(function(){
+        say(result === "cancelled" ? order.order_number + " cancelled." : "The order has already left stock review.");
+      });
+    }).catch(function(e){ say("Couldn’t update stock review: " + e.message, true); })
+      .finally(function(){ approve.disabled = cancel.disabled = false; });
+  }
+  approve.addEventListener("click", function(){ resolve("approve"); });
+  cancel.addEventListener("click", function(){ resolve("cancel"); });
+  return h("div", { class:"warn" },
+    h("p", { text:"Paystack confirmed payment after the stock hold expired. Stock is unavailable for at least one item. Allocate stock once all items are available. If you refund the payment in Paystack, record the cancellation here afterward." }),
+    h("div", { class:"row-actions" }, approve, cancel));
+}
+
 function orderDetail(o){
   var items = (o.order_items || []).map(function(i){ return i.product_name + " · " + i.color + "/" + i.size + " × " + i.qty + " — " + money(i.line_ngn) + (i.is_preorder ? " (preorder)" : ""); });
   var notes = h("textarea", { rows:3, maxLength:1000, "aria-label":"Admin notes for " + o.order_number, value:o.admin_notes || "" });
@@ -171,9 +219,7 @@ function orderDetail(o){
     recheck = h("button", { type:"button", class:"btn", text:"Re-check payment with Paystack" });
     recheck.addEventListener("click", function(){
       recheck.disabled = true; say("Checking with Paystack\u2026");
-      fetch(CFG.url + "/functions/v1/verify-payment", { method:"POST", headers:{ "Content-Type":"application/json", apikey:CFG.publishableKey },
-        body: JSON.stringify({ order_number:o.order_number, token:o.public_token }) })
-      .then(function(r){ return r.json(); })
+      verifyOrderPayment(o)
       .then(function(j){
         var st = j && j.order ? j.order.payment_status : "unknown";
         var gw = j && j.gateway_status ? " (Paystack says: " + j.gateway_status + ")" : "";
@@ -184,6 +230,13 @@ function orderDetail(o){
   }
   var save = h("button", { type:"button", class:"btn", text:"Save note" });
   save.addEventListener("click", function(){ saveWrap(save, rest("PATCH", "orders?id=eq." + o.id, { admin_notes:notes.value }), "Note saved."); });
+  var needsStock = o.review_flag === STOCK_REVIEW_FLAG;
+  var refundRecorded = o.review_flag === STOCK_REFUND_FLAG;
+  var review = needsStock ? "Late payment, stock unavailable" : refundRecorded ? "Cancelled after refund" : o.review_flag;
+  var receiptStatus = o.receipt_sent_at ? "Sent " + new Date(o.receipt_sent_at).toLocaleString()
+    : needsStock ? "Held until stock is approved"
+    : refundRecorded ? "Order cancelled"
+    : o.receipt_error || (o.payment_status === "paid" ? "Not sent" : "");
   function dd(label, value){ return [h("dt", { text:label }), h("dd", { text:value || "—" })]; }
   return h("div", { class:"card" }, h("div", { class:"detail-grid" },
     h("dl", {}, dd("Customer", o.customer_name), dd("Email", o.customer_email), dd("Phone", o.customer_phone),
@@ -191,8 +244,9 @@ function orderDetail(o){
     h("dl", {}, dd("Items", items.join("  |  ")), dd("Subtotal", money(o.subtotal_ngn)), dd("Delivery fee", money(o.shipping_ngn)),
       dd("Total (NGN)", money(o.total_ngn)), dd("Exchange rate used", "$1 = " + money(o.exchange_rate))),
     h("dl", {}, dd("Paystack reference", o.paystack_reference), dd("Paid at", o.paid_at ? new Date(o.paid_at).toLocaleString() : ""),
-      dd("Channel", o.payment_channel), dd("Needs review?", o.review_flag), dd("Terms accepted", o.terms_accepted_at ? new Date(o.terms_accepted_at).toLocaleString() : ""),
-      dd("Receipt email", o.receipt_sent_at ? "Sent " + new Date(o.receipt_sent_at).toLocaleString() : (o.receipt_error ? "Not sent \u2014 " + o.receipt_error : (o.payment_status === "paid" ? "Not sent (email receipts not set up yet)" : "\u2014"))))),
+      dd("Channel", o.payment_channel), dd("Review status", review), dd("Terms accepted", o.terms_accepted_at ? new Date(o.terms_accepted_at).toLocaleString() : ""),
+      dd("Receipt email", receiptStatus))),
+    needsStock ? stockReviewActions(o) : null,
     h("div", { class:"of-field" }, h("label", { text:"Admin notes (private)" }), notes), h("div", { class:"row-actions" }, save, recheck),
     o.payment_status === "pending" ? h("p", { class:"small", text:"Pending = no payment confirmed yet. If the customer doesn\u2019t pay within 30 minutes the order becomes \u201Cexpired\u201D and its held stock is released automatically." }) : null);
 }
