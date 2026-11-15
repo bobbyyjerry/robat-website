@@ -42,6 +42,14 @@ var currency = (lsGet(CUR_KEY) === "NGN") ? "NGN" : "USD";
 var cart = loadCart();
 var checkoutBusy = false;
 
+window.addEventListener("pageshow", function(e){
+  if(!e.persisted){ return; }
+  // The receipt clears this cart in storage while the storefront may be cached.
+  cart = loadCart();
+  if(!cart.length){ checkoutBusy = false; }
+  refreshAll();
+});
+
 function loadCart(){
   try {
     var raw = JSON.parse(lsGet(CART_KEY) || "[]");
