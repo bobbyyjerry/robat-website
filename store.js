@@ -491,6 +491,9 @@ function uuid(){
   if(window.crypto && crypto.randomUUID){ return crypto.randomUUID(); }
   return "k" + Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 }
+function orderStatusUrl(number, token){
+  return "order-status.html?o=" + encodeURIComponent(number) + "&t=" + encodeURIComponent(token);
+}
 document.addEventListener("submit", function(e){
   if(!e.target || e.target.id !== "checkout-form"){ return; }
   e.preventDefault();
@@ -506,57 +509,104 @@ document.addEventListener("submit", function(e){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v("email"))){ fail("Please enter a valid email address."); form.elements.email.focus(); return; }
   if(!/^[+0-9()\-\s]{7,24}$/.test(v("phone"))){ fail("Please enter a valid phone number."); form.elements.phone.focus(); return; }
   if(!form.elements.terms.checked){ fail("Please tick the box to agree to the terms before paying."); form.elements.terms.focus(); return; }
-  var t = cartTotals(v("state"));
-  if(!t.allOk){ fail("Some items in your cart are no longer available. Please go back to your cart."); return; }
-  if(t.totalNgn == null){ fail("Please select your delivery state."); return; }
-
   var payload = {
     accept_terms: true,
     customer: { name:v("name"), email:v("email"), phone:v("phone"), line1:v("line1"), city:v("city"), state:v("state"), notes:v("notes") },
-    items: cart.map(function(l){ return { slug:l.slug, color:l.color, size:l.size, qty:l.qty }; }),
-    expected_total_ngn: t.totalNgn
+    items: cart.map(function(l){ return { slug:l.slug, color:l.color, size:l.size, qty:l.qty }; })
   };
-  /* one idempotency key per unchanged checkout, so a double-click or a
-     "Back" from Paystack can never create a second order */
-  var sig = JSON.stringify([payload.items, payload.customer.state, payload.customer.email, payload.expected_total_ngn]);
-  var stored = null; try { stored = JSON.parse(ssGet(KEY_STORE) || "null"); } catch(x){}
-  if(!stored || stored.sig !== sig){ stored = { sig:sig, key:uuid() }; ssSet(KEY_STORE, JSON.stringify(stored)); }
-  payload.idempotency_key = stored.key;
+  var shown = cartTotals(payload.customer.state);
+  var identity = [payload.items, payload.customer.state, payload.customer.email];
+  var stored, previous;
+  try {
+    stored = JSON.parse(ssGet(KEY_STORE) || "null");
+    previous = stored && JSON.parse(stored.sig);
+  } catch(x){}
+  var sameAttempt = Array.isArray(previous) && JSON.stringify(previous.slice(0, 3)) === JSON.stringify(identity) &&
+    Number.isInteger(previous[3]) && previous[3] >= 0 && typeof stored.key === "string" && /^[A-Za-z0-9-]{16,64}$/.test(stored.key);
 
-  checkoutBusy = true; pay.disabled = true; pay.setAttribute("aria-disabled", "true");
-  window.setTimeout(function(){ delete form.dataset.retried; }, 5000);
-  status.textContent = "Securing your order…";
-  fetch(FN + "create-order", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", apikey: CFG.publishableKey },
-    body: JSON.stringify(payload)
-  }).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return { status:r.status, body:j }; }); })
-  .then(function(res){
-    var b = res.body || {};
-    if(res.status === 200 && typeof b.authorization_url === "string" && /^https:\/\/checkout\.paystack\.com\//.test(b.authorization_url)){
-      status.textContent = "Redirecting you to Paystack…";
-      window.location.href = b.authorization_url;
-      window.setTimeout(function(){ checkoutBusy = false; pay.disabled = false; pay.removeAttribute("aria-disabled"); }, 6000);
-      return;
+  function unlock(){
+    checkoutBusy = false;
+    pay.disabled = false;
+    pay.removeAttribute("aria-disabled");
+  }
+  function stop(message){
+    unlock();
+    if(message && form.isConnected){ fail(message); }
+  }
+  function redirect(url, message){
+    status.textContent = message;
+    window.setTimeout(unlock, 6000);
+    window.location.href = url;
+  }
+  function clearAttempt(){
+    try { window.sessionStorage.removeItem(KEY_STORE); } catch(x){}
+  }
+  function startFresh(totals, retried){
+    if(!form.isConnected){ return stop(); }
+    if(!checkoutOpen()){ return stop("Checkout is closed. Please try again when ordering reopens."); }
+    if(totals.totalNgn == null){ return stop("Your delivery state is no longer available. Please choose another state."); }
+    if(!totals.allOk){ return stop("Some items in your cart are no longer available. Please go back to your cart."); }
+    if(retried && totals.totalNgn !== shown.totalNgn){
+      return stop("Prices or delivery fees have changed. Review your new total and press Pay Now again.");
     }
-    checkoutBusy = false; pay.disabled = false; pay.removeAttribute("aria-disabled");
-    if((b.error === "order_closed" || b.error === "already_paid") && !form.dataset.retried){
-      /* the previous attempt with this exact cart expired, failed or was already paid:
-         start a fresh order instead of getting stuck on the old one */
-      try { window.sessionStorage.removeItem(KEY_STORE); } catch(x){}
-      form.dataset.retried = "1";
-      status.textContent = "Starting a fresh checkout\u2026";
-      window.setTimeout(function(){ form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable:true })); }, 50);
-      return;
+    payload.expected_total_ngn = totals.totalNgn;
+    payload.idempotency_key = uuid();
+    ssSet(KEY_STORE, JSON.stringify({ sig:JSON.stringify(identity.concat(totals.totalNgn)), key:payload.idempotency_key }));
+    return submitOrder(retried);
+  }
+  function submitOrder(retried){
+    status.textContent = "Securing your order…";
+    return fetch(FN + "create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: CFG.publishableKey },
+      body: JSON.stringify(payload)
+    }).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return { status:r.status, body:j }; }); })
+    .then(function(res){
+      if(!form.isConnected){ return stop(); }
+      var b = res.body || {};
+      if(b.error === "already_paid" || b.error === "payment_in_progress"){
+        if(typeof b.order_number !== "string" || typeof b.public_token !== "string" || !b.order_number || !b.public_token){
+          return stop("Check your existing order under Track Your Order before paying again.");
+        }
+        return redirect(orderStatusUrl(b.order_number, b.public_token), "Opening your existing order…");
+      }
+      if(res.status === 200 && typeof b.authorization_url === "string" && /^https:\/\/checkout\.paystack\.com\//.test(b.authorization_url)){
+        return redirect(b.authorization_url, "Redirecting you to Paystack…");
+      }
+      if(b.error === "order_closed"){
+        clearAttempt();
+        if(retried){ return stop(b.message || "This checkout expired. Please try again."); }
+        status.textContent = "Checking current stock and prices…";
+        return loadCatalog(true).then(function(){
+          if(!S.promise){ return stop("We couldn’t refresh stock. Please try again."); }
+          renderSummary(el);
+          return startFresh(cartTotals(payload.customer.state), true);
+        });
+      }
+      if(b.error === "price_changed"){
+        clearAttempt();
+        return loadCatalog(true).then(function(){ renderSummary(el); stop("Prices or delivery fees were just updated. Please review your new total and press Pay Now again."); });
+      }
+      if(b.error === "out_of_stock" || b.error === "item_unavailable"){
+        return loadCatalog(true).then(function(){ renderSummary(el); stop(b.message || "An item is no longer available."); });
+      }
+      return stop(b.message || "We couldn’t start your payment. Please try again.");
+    });
+  }
+
+  checkoutBusy = true;
+  pay.disabled = true;
+  pay.setAttribute("aria-disabled", "true");
+  Promise.resolve().then(function(){
+    // Look up the last attempt even if the catalogue total or availability changed.
+    if(sameAttempt){
+      payload.expected_total_ngn = previous[3];
+      payload.idempotency_key = stored.key;
+      return submitOrder(false);
     }
-    if(b.error === "price_changed"){
-      return loadCatalog(true).then(function(){ renderSummary(el); fail("Prices or delivery fees were just updated. Please review your new total and press Pay Now again."); });
-    }
-    if(b.error === "out_of_stock" || b.error === "item_unavailable"){ return loadCatalog(true).then(function(){ fail(b.message || "An item is no longer available."); }); }
-    fail(b.message || "We couldn’t start your payment. Please try again.");
+    return startFresh(shown, false);
   }).catch(function(){
-    checkoutBusy = false; pay.disabled = false; pay.removeAttribute("aria-disabled");
-    fail("We couldn’t reach the server. Check your connection and try again. You have not been charged.");
+    stop("We couldn’t reach the server. Check your connection and try again.");
   });
 });
 
@@ -747,7 +797,7 @@ document.addEventListener("submit", function(e){
   .then(function(res){
     if(res.ok && res.body && typeof res.body.token === "string" && res.body.token){
       say("Found it. Opening your order\u2026");
-      window.location.href = "order-status.html?o=" + encodeURIComponent(num) + "&t=" + encodeURIComponent(res.body.token);
+      window.location.href = orderStatusUrl(num, res.body.token);
       return;
     }
     btn.disabled = false;

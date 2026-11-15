@@ -46,7 +46,6 @@ function summary(o){
   return wrap;
 }
 
-function freshCheckout(){ try { window.sessionStorage.removeItem("robat_checkout_key"); } catch(e){} }
 function fmtDate(iso){
   if(!iso){ return ""; }
   try { return new Date(iso).toLocaleString("en-GB", { timeZone:"Africa/Lagos", dateStyle:"long", timeStyle:"short" }) + " (Lagos)"; }
@@ -126,7 +125,6 @@ function render(o, gateway){
     return true;
   }
   if(o.payment_status === "failed"){
-    freshCheckout();
     show("Order status", "Payment failed", [
       el("p", "lead", "Your payment didn’t go through, so no order was placed and you have not been charged by us. Your cart is still saved."),
       link("index.html#/cart", "Back to cart and try again", "btn solid"), contactLine()]);
@@ -134,7 +132,6 @@ function render(o, gateway){
   }
   if(o.payment_status === "expired"){
     if(gateway === "ongoing" || gateway === "pending" || gateway === "processing" || gateway === "success"){ return false; }
-    freshCheckout();
     show("Order status", "This checkout expired", [
       el("p", "lead", "The stock hold ended. If you already paid, refresh this page or contact ROBAT with your order number before paying again. Your cart is still saved."),
       link("index.html#/cart", "Back to cart", "btn solid"), contactLine()]);
@@ -142,7 +139,6 @@ function render(o, gateway){
   }
   if(gateway === "abandoned" || gateway === "failed"){
     /* Paystack says nothing was paid on this attempt (window closed, card declined, or cancelled) */
-    freshCheckout();
     show("Order status", "Payment not completed", [
       el("p", "lead", "Your payment wasn\u2019t completed \u2014 for example the card was declined or the payment window was closed. You have not been charged. Your cart is still saved."),
       link("index.html#/cart", "Back to cart and try again", "btn solid"), contactLine()]);
