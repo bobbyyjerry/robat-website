@@ -258,6 +258,13 @@
   .article-body{max-width:66ch;}
   .article-body p{color:var(--paper-dim); font-size:16.5px; line-height:1.8; margin:0 0 24px;}
   .article-body p:first-of-type{color:var(--paper); font-size:19px;}
+  .policy-body a,.foot-policies a:hover,.foot-policies a:focus-visible{text-decoration:underline; text-underline-offset:3px;}
+  .policy-body ul{padding-left:1.25em; color:var(--paper-dim); font-size:16.5px; line-height:1.8;}
+  .policy-body li + li{margin-top:8px;}
+  .policy-body [data-store-policy] p{white-space:pre-line;}
+  .policy-body .store-table td:nth-child(2){white-space:nowrap;}
+  .policy-body .store-table td:last-child{overflow-wrap:anywhere;}
+  .policy-body .store-table th[scope="row"]{font:inherit; color:inherit; letter-spacing:normal; text-transform:none;}
   .article-more{border-top:1px solid var(--hairline); margin-top:8px; padding-top:40px;}
   .article-more-grid{display:grid; grid-template-columns:1fr 1fr; gap:28px;}
   @media (max-width:700px){ .article-more-grid{grid-template-columns:1fr;} }
@@ -539,13 +546,10 @@
 /* ---------- footer: tagline + company registration ---------- */
 .foot-tagline{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--steel); margin:0;}
 .foot-legal{margin-top:56px; padding-top:24px; border-top:1px solid var(--hairline); display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--steel);}
-.foot-policies{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:4px 12px;}
-.foot-policies a{color:var(--paper-dim); text-decoration:none; padding:6px 0; min-height:24px; display:inline-flex; align-items:center;}
-.foot-policies a:hover,.foot-policies a:focus-visible{color:var(--paper); text-decoration:underline; text-underline-offset:3px;}
 .foot-sep{color:var(--hairline-strong);}
 .foot-copy,.foot-reg{margin:0; line-height:1.6;}
 .foot-reg{font-size:10.5px; letter-spacing:.06em;}
-@media (max-width:520px){ .foot-policies{gap:2px 18px;} .foot-policies .foot-sep{display:none;} .foot-legal{font-size:10.5px;} }
+@media (max-width:520px){ .foot-legal{font-size:10.5px;} }
 
 /* ---------- order progress (order-status page) ---------- */
 .os-progress{display:flex; flex-direction:column; gap:10px;}

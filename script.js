@@ -598,8 +598,10 @@ function render(){
     html = pagePrivacy(); setSEO("Privacy Policy", "How ROBAT collects, uses and protects your information.");
   } else if(route === "/terms"){
     html = pageTerms(); setSEO("Terms & Conditions", "The terms that apply to orders placed with ROBAT FIT LTD.");
+  } else if(route === "/acceptable-use"){
+    html = pageAcceptableUse(); setSEO("Acceptable Use Policy", "Rules for using the ROBAT website, checkout and order tracking.");
   } else if(route === "/shipping-policy"){
-    html = pageShippingPolicy(); setSEO("Shipping Policy", "ROBAT delivery fees and delivery areas.");
+    html = pageShippingPolicy(); setSEO("Shipping Policy", "Delivery areas, fees and preorder timelines for ROBAT orders in Nigeria.");
   } else if(route === "/returns-policy"){
     html = pageReturnsPolicy(); setSEO("Returns & Refunds Policy", "ROBAT's approach to returns and refunds.");
   } else if(route === "/accessibility"){
@@ -660,10 +662,13 @@ function footerHTML(){
       '</div>' +
       '<div><h4>Brand</h4><a href="#/shop">Shop</a><a href="#/size-guide">Size Guide</a><a href="#/about">About ROBAT</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a></div>' +
       '<div><h4>Get In Touch</h4><a href="#/contact">Contact</a><a href="#/track">Track Your Order</a><a href="#/journal">Latest Notes</a></div>' +
-      '<div><h4>Legal</h4><a href="#/privacy">Privacy Policy</a><a href="#/terms">Terms &amp; Conditions</a><a href="#/shipping-policy">Shipping Policy</a><a href="#/returns-policy">Returns &amp; Refunds</a><a href="#/accessibility">Accessibility</a></div>' +
+      '<nav class="foot-policies" aria-labelledby="foot-policies-heading">' +
+        '<h4 id="foot-policies-heading">Policies</h4>' +
+        '<a href="#/terms">Terms &amp; Conditions</a><a href="#/shipping-policy">Shipping Policy</a><a href="#/returns-policy">Returns &amp; Refunds Policy</a>' +
+        '<a href="#/acceptable-use">Acceptable Use Policy</a><a href="#/privacy">Privacy Policy</a><a href="#/accessibility">Accessibility Statement</a>' +
+      '</nav>' +
     '</div>' +
     '<div class="foot-legal">' +
-      '<nav class="foot-policies" aria-label="Policies"><a href="#/privacy">Privacy Policy</a><span class="foot-sep" aria-hidden="true">|</span><a href="#/terms">Terms &amp; Conditions</a><span class="foot-sep" aria-hidden="true">|</span><a href="#/returns-policy">Returns &amp; Refunds</a></nav>' +
       '<p class="foot-copy">&copy; ' + new Date().getFullYear() + ' ' + (brand.legalName || 'ROBAT') + '. All rights reserved.</p>' +
       (regNo ? '<p class="foot-reg">Registered in Nigeria <span class="foot-sep" aria-hidden="true">|</span> CAC RC: ' + regNo + '</p>' : '') +
     '</div>' +
@@ -1561,16 +1566,21 @@ function legalShell(eyebrow, title, bodyHtml){
     '<div class="reveal" style="max-width:70ch;">' +
       '<div class="eyebrow">' + eyebrow + '</div>' +
       '<h1 style="font-size:clamp(2rem,4.2vw,3rem);text-transform:uppercase;margin-top:12px;">' + title + '</h1>' +
-      '<div class="article-body" style="margin-top:28px;">' + bodyHtml + '</div>' +
+      '<div class="article-body policy-body" style="margin-top:28px;">' + bodyHtml + '</div>' +
     '</div>' +
   '</div></section>';
 }
 function legalP(t){ return '<p>' + t + '</p>'; }
 function legalH2(t){ return '<h2 style="font-size:1.3rem;text-transform:uppercase;margin-top:36px;">' + t + '</h2>'; }
 
+function legalSupportLink(){
+  var email = ROBAT_CONFIG.contact.supportEmail;
+  return '<a href="mailto:' + email + '">' + email + '</a>';
+}
+
 function legalBusinessLine(){
   var b = ROBAT_CONFIG.brand;
-  return legalP("<strong>" + (b.legalName || "ROBAT") + "</strong>" + (b.registrationNumber ? ", " + b.registrationNumber : "") + (b.address ? ", " + b.address : "") + ". Email: <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.");
+  return legalP("<strong>" + (b.legalName || "ROBAT") + "</strong>" + (b.registrationNumber ? ", " + b.registrationNumber : "") + (b.address ? ", " + b.address : "") + ". Email " + legalSupportLink() + ".");
 }
 
 function pagePrivacy(){
@@ -1578,19 +1588,19 @@ function pagePrivacy(){
     legalH2("Who We Are") +
     legalBusinessLine() +
     legalH2("What We Collect") +
-    legalP("When you place an order we collect your name, email address, phone number, delivery address (street, city, state and any delivery notes), the items you ordered, and the payment reference and status of your payment. When you sign up for the newsletter, we collect the email address you provide.") +
+    legalP("When you place an order we collect your name, email address, phone number, delivery address (street, city, state and any delivery notes), the items you ordered, and the payment reference and status of your payment. The newsletter form opens your email app so you can send us a request to join.") +
     legalP("Your card, bank or USSD payment details are entered on Paystack’s secure payment page. ROBAT does not see or store them.") +
     legalP("To help prevent abuse of checkout, we store a one-way scrambled (hashed) form of your network address with your order. It is not used to identify you.") +
     legalH2("Why We Collect It") +
-    legalP("To process and deliver your order, confirm your payment, contact you about it, keep a record of the sale, and prevent fraud and abuse.") +
+    legalP("We use order information to process and deliver your order, confirm your payment, contact you about it, keep a record of the sale, and prevent fraud and abuse. Order tracking uses your order number and the email address you used at checkout.") +
     legalH2("Who Handles It") +
-    legalP("Paystack processes your payment under its own terms and privacy notice. Order records are stored with our database provider, Supabase. Our website is hosted on GitHub Pages. Our website fonts are provided by Google Fonts. Receipt emails are sent through Resend, and emails you send us are handled by our email provider, Namecheap Private Email. No analytics or tracking scripts run on this site.") +
+    legalP("Paystack processes your payment under its own terms and privacy notice. Order records are stored with our database provider, Supabase. Our website is hosted on GitHub Pages. Our website fonts are provided by Google Fonts. When receipt emails are enabled, they are sent through Resend. Emails you send us are handled by our email provider, Namecheap Private Email. No analytics or tracking scripts run on this site.") +
     legalH2("Cookies And Browser Storage") +
-    legalP("We don\u2019t use cookies or tracking. Your browser stores your cart and chosen currency on your own device so they\u2019re remembered between visits, and keeps the checkout details you type only until you close the tab or your payment is confirmed; you can clear them at any time in your browser settings.") +
+    legalP("The ROBAT site does not set its own cookies. Your browser remembers your cart and chosen currency between visits. Your checkout details stay in the current browser tab and are cleared when the tab closes or you reach the page confirming payment. You can clear this information in your browser settings.") +
     legalH2("Your Rights") +
-    legalP("You can ask what information we hold about you, ask us to correct it, or ask us to delete it (where we are not required to keep it), by emailing <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.") +
+    legalP("You can ask what information we hold about you, ask us to correct it, or ask us to delete it (where we are not required to keep it), by emailing " + legalSupportLink() + ".") +
     legalH2("Contact") +
-    legalP("Privacy questions: <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.")
+    legalP("Send privacy questions to " + legalSupportLink() + ".")
   );
 }
 
@@ -1608,24 +1618,47 @@ function pageTerms(){
     legalP("Payments are processed by Paystack. Your order is confirmed only after Paystack confirms that payment was successful and ROBAT has verified it; you will see your order number on the confirmation page. Items in your checkout are held for a short time (about 30 minutes) while you pay; if payment is not completed in that time, the hold is released.") +
     legalH2("Returns And Refunds") +
     legalP("See our <a href=\"#/returns-policy\">Returns &amp; Refunds Policy</a>.") +
+    legalH2("Using The Site") +
+    legalP("Our <a href=\"#/acceptable-use\">Acceptable Use Policy</a> applies when you browse the site, place an order or use order tracking. See the <a href=\"#/privacy\">Privacy Policy</a> for how we handle your information.") +
     legalH2("Governing Law") +
     legalP("These terms are governed by the laws of the Federal Republic of Nigeria. Any dispute will be handled by the courts of Lagos State.")
+  );
+}
+
+function pageAcceptableUse(){
+  return legalShell("Legal", "Acceptable Use Policy", '' +
+    legalP("This policy applies to your use of the ROBAT website, including checkout and order tracking.") +
+    legalH2("Using The Store") +
+    legalP("Provide accurate contact and delivery details when you order. Use a payment method you are authorised to use. Only look up orders you placed or have permission to access.") +
+    legalH2("Prohibited Use") +
+    '<ul>' +
+      '<li>Placing fake or fraudulent orders or impersonating someone else.</li>' +
+      '<li>Trying to access another customer’s information without permission.</li>' +
+      '<li>Trying to bypass checkout restrictions or interfering with the website, payment process or order tracking.</li>' +
+      '<li>Using the site or its forms to send spam or carry out unlawful activity.</li>' +
+    '</ul>' +
+    legalH2("Report Misuse") +
+    legalP("If you suspect unauthorised use of your order details or other misuse of the site, email " + legalSupportLink() + ".")
   );
 }
 
 function pageShippingPolicy(){
   return legalShell("Legal", "Shipping Policy", '' +
     legalH2("Where We Deliver") +
-    legalP("We currently deliver within Nigeria only.") +
+    legalP("We currently deliver within Nigeria only, to the states available at checkout.") +
     legalH2("Fees And Timelines") +
-    RobatStore.shippingHTML()
+    legalP("Delivery fees are shown in Naira and added to your total at checkout when you choose your delivery state. Any delivery times shown by state are estimates. We confirm the delivery timeline after you place your preorder.") +
+    RobatStore.shippingHTML() +
+    legalH2("Track An Order") +
+    legalP("Use <a href=\"#/track\">Track Your Order</a> with your order number and checkout email. For help with delivery, email " + legalSupportLink() + ".")
   );
 }
 
 function pageReturnsPolicy(){
   return legalShell("Legal", "Returns &amp; Refunds Policy", '' +
     RobatStore.policyHTML() +
-    legalP("Questions about a return or refund: <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a>.")
+    legalH2("Get Help With Your Order") +
+    legalP("For help with a return, refund or order issue, email " + legalSupportLink() + " with your order number and a brief description. ROBAT handles refunds for payments made on this site through Paystack.")
   );
 }
 

@@ -21,6 +21,7 @@ var CUR_KEY = "robat_currency";
 var KEY_STORE = "robat_checkout_key";
 var DETAILS_STORE = "robat_checkout_details"; /* this tab only; cleared when the tab closes or the order is paid */
 var DETAIL_FIELDS = ["name","phone","email","line1","city","state","notes"];
+var DEFAULT_DELIVERY_NOTE = "Delivery timelines will be confirmed after your order.";
 var WHATSAPP = (window.ROBAT_CONFIG && window.ROBAT_CONFIG.contact && window.ROBAT_CONFIG.contact.whatsappNumberIntl) || "";
 
 /* ---------- tiny safe helpers ---------- */
@@ -306,7 +307,7 @@ function renderPanel(el){
   html += '<div class="of-field" style="max-width:140px;"><label for="sq-' + esc(slug) + '">Quantity</label><input id="sq-' + esc(slug) + '" type="number" name="qty" min="1" max="10" value="' + esc(String(sel.qty)) + '"></div>';
   html += '<div><button type="submit" class="btn solid block">Add To Cart</button>';
   html += '<p class="of-msg form-status" role="status" aria-live="polite" data-msg></p></div>';
-  html += '<p class="of-note">' + esc(S.settings.delivery_note || "Delivery timelines will be confirmed after your order.") + '</p>';
+  html += '<p class="of-note">' + esc(S.settings.delivery_note || DEFAULT_DELIVERY_NOTE) + '</p>';
   html += '</form>';
   el.innerHTML = html;
   paintSizes(el, p);
@@ -428,7 +429,7 @@ function renderCheckoutIfNeeded(el){
         '<div class="of-field"><label for="co-state">State</label><select id="co-state" name="state" autocomplete="address-level1" required><option value="">Select state</option>' + states + '</select></div></div>' +
         '<div class="of-field"><label for="co-notes">Delivery notes (optional)</label><textarea id="co-notes" name="notes" rows="2" maxlength="300"></textarea></div>' +
       '</fieldset>' +
-      '<div class="of-field of-consent"><label><input type="checkbox" name="terms" id="co-terms"><span>I have read and agree to the <a class="link" href="#/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a class="link" href="#/privacy" target="_blank" rel="noopener">Privacy Policy</a>, <a class="link" href="#/shipping-policy" target="_blank" rel="noopener">Shipping Policy</a> and <a class="link" href="#/returns-policy" target="_blank" rel="noopener">Returns Policy</a>, and I understand this is a preorder and delivery timelines will be confirmed after my order.</span></label></div>' +
+      '<div class="of-field of-consent"><label><input type="checkbox" name="terms" id="co-terms"><span>I have read and agree to the <a class="link" href="#/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a class="link" href="#/privacy" target="_blank" rel="noopener">Privacy Policy</a>, <a class="link" href="#/shipping-policy" target="_blank" rel="noopener">Shipping Policy</a> and <a class="link" href="#/returns-policy" target="_blank" rel="noopener">Returns &amp; Refunds Policy</a>, and I understand this is a preorder and delivery timelines will be confirmed after my order.</span></label></div>' +
       '<div><button type="submit" class="btn solid block" id="co-pay">Pay Now</button>' +
       '<p class="of-note">You will be taken to Paystack’s secure page to pay by card, bank transfer or USSD. ROBAT never sees or stores your card details.</p>' +
       '<p class="of-msg" id="co-status" role="status" aria-live="polite"></p></div>' +
@@ -475,7 +476,7 @@ function renderSummary(el){
   html += '<div class="sum-row"><span>Subtotal</span><span>' + esc(fmtNgn(t.subtotalNgn)) + (currency === "USD" ? ' <small>(' + esc(showNgn(t.subtotalNgn)) + ')</small>' : '') + '</span></div>';
   html += '<div class="sum-row"><span>Delivery' + (t.zone ? ' — ' + esc(t.zone.state) : '') + '</span><span>' + (t.shippingNgn == null ? 'Select your state' : esc(fmtNgn(t.shippingNgn))) + '</span></div>';
   if(t.zone && t.zone.est_delivery){ html += '<p class="of-note">Estimated delivery: ' + esc(t.zone.est_delivery) + '</p>'; }
-  else { html += '<p class="of-note">' + esc(S.settings.delivery_note || "Delivery timelines will be confirmed after your order.") + '</p>'; }
+  else { html += '<p class="of-note">' + esc(S.settings.delivery_note || DEFAULT_DELIVERY_NOTE) + '</p>'; }
   html += '<div class="sum-row sum-total"><span>Total to pay</span><strong>' + (t.totalNgn == null ? '—' : esc(fmtNgn(t.totalNgn))) + '</strong></div>';
   if(currency === "USD" && t.totalNgn != null){ html += '<p class="of-note">About ' + esc(fmtUsd(t.totalNgn / rate())) + ' at $1 = ' + esc(fmtNgn(rate())) + '</p>'; }
   html += '<p class="of-note">Payment is taken in Naira (₦). Prices in USD are converted at the rate above.</p>';
@@ -561,22 +562,37 @@ document.addEventListener("submit", function(e){
 
 /* ---------- policy / shipping pages fed by the admin page ---------- */
 function renderPolicy(el){
-  if(S.status !== "ready"){ el.textContent = S.status === "error" ? "We couldn’t load this right now. Please refresh." : "Loading…"; return; }
-  var text = String(S.settings.returns_policy || "").trim();
-  el.textContent = "";
-  if(!text){
-    var p0 = document.createElement("p");
-    p0.textContent = "ROBAT’s return and refund policy has not been finalised yet and will be published here. Until then, please contact info@robatfit.com before sending anything back.";
-    el.appendChild(p0); return;
+  if(S.status !== "ready"){
+    el.innerHTML = S.status === "error"
+      ? "<p>We couldn’t load the return and refund terms. Please try again or contact ROBAT for help.</p>"
+      : "<p>Loading return and refund terms…</p>";
+    return;
   }
-  text.split(/\n{2,}/).forEach(function(par){ var p = document.createElement("p"); p.style.marginTop = "14px"; p.textContent = par; el.appendChild(p); });
+  var policy = String(S.settings.returns_policy || "").trim();
+  if(!policy){
+    el.innerHTML = "<p>Return and refund terms have yet to be published here. Please contact ROBAT before sending anything back.</p>";
+    return;
+  }
+  el.innerHTML = policy.split(/\r?\n(?:[ \t]*\r?\n)+/).map(function(par){
+    return '<p>' + esc(par) + '</p>';
+  }).join("");
 }
 function renderShipping(el){
-  if(S.status !== "ready"){ el.textContent = S.status === "error" ? "We couldn’t load this right now. Please refresh." : "Loading…"; return; }
-  var html = '<p>We currently deliver within Nigeria only. Delivery fees are charged in Naira and added automatically at checkout based on your state.</p>' +
-    '<table class="store-table"><thead><tr><th scope="col">State</th><th scope="col">Fee</th><th scope="col">Estimated delivery</th></tr></thead><tbody>';
-  S.zones.forEach(function(z){ html += '<tr><td>' + esc(z.state) + '</td><td>' + esc(fmtNgn(z.fee_ngn)) + '</td><td>' + esc(z.est_delivery || "To be confirmed") + '</td></tr>'; });
-  html += '</tbody></table><p class="of-note">' + esc(S.settings.delivery_note || "Delivery timelines will be confirmed after your order.") + '</p>';
+  if(S.status !== "ready"){
+    el.innerHTML = S.status === "error"
+      ? "<p>We couldn’t load the delivery options. Please check checkout or contact ROBAT for help.</p>"
+      : "<p>Loading delivery options…</p>";
+    return;
+  }
+  var html = "<p>No delivery options are currently listed.</p>";
+  if(S.zones.length){
+    html = '<table class="store-table" aria-label="Delivery options by state">' +
+      '<thead><tr><th scope="col">State</th><th scope="col">Fee</th><th scope="col">Estimated delivery</th></tr></thead><tbody>';
+    S.zones.forEach(function(z){ html += '<tr><th scope="row">' + esc(z.state) + '</th><td>' + esc(fmtNgn(z.fee_ngn)) + '</td><td>' + esc(z.est_delivery || "To be confirmed") + '</td></tr>'; });
+    html += '</tbody></table>';
+  }
+  var note = S.settings.delivery_note;
+  if(note && note !== DEFAULT_DELIVERY_NOTE){ html += '<p>' + esc(note) + '</p>'; }
   el.innerHTML = html;
 }
 
@@ -744,7 +760,7 @@ window.RobatStore = {
   pageSizeGuide: pageSizeGuide, sizeGuideHTML: sizeGuideHTML,
   productPanelHTML: productPanelHTML, priceTagHTML: priceTagHTML,
   navHTML: function(){ return '<div class="nav-store" data-store-nav></div>'; },
-  policyHTML: function(){ return '<div data-store-policy></div>'; },
+  policyHTML: function(){ return '<div data-store-policy aria-live="polite"></div>'; },
   shippingHTML: function(){ return '<div data-store-shipping></div>'; }
 };
 })();
