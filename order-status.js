@@ -117,7 +117,7 @@ function render(o, gateway){
     var printBtn = el("button", "btn solid", "Print / save receipt as PDF"); printBtn.type = "button";
     printBtn.addEventListener("click", function(){ window.print(); });
     actions.appendChild(printBtn);
-    actions.appendChild(link("index.html#/shop", "Continue shopping", "btn"));
+    actions.appendChild(link("/shop/", "Continue shopping", "btn"));
     nodes.push(actions);
     if(underReview){ show("Payment received", "Payment received, order under review", nodes); }
     else if(cancelled){ show("Order status", "Order cancelled", nodes); }
@@ -127,21 +127,21 @@ function render(o, gateway){
   if(o.payment_status === "failed"){
     show("Order status", "Payment failed", [
       el("p", "lead", "Your payment didn’t go through, so no order was placed and you have not been charged by us. Your cart is still saved."),
-      link("index.html#/cart", "Back to cart and try again", "btn solid"), contactLine()]);
+      link("/cart/", "Back to cart and try again", "btn solid"), contactLine()]);
     return true;
   }
   if(o.payment_status === "expired"){
     if(gateway === "ongoing" || gateway === "pending" || gateway === "processing" || gateway === "success"){ return false; }
     show("Order status", "This checkout expired", [
       el("p", "lead", "The stock hold ended. If you already paid, refresh this page or contact ROBAT with your order number before paying again. Your cart is still saved."),
-      link("index.html#/cart", "Back to cart", "btn solid"), contactLine()]);
+      link("/cart/", "Back to cart", "btn solid"), contactLine()]);
     return true;
   }
   if(gateway === "abandoned" || gateway === "failed"){
     /* Paystack says nothing was paid on this attempt (window closed, card declined, or cancelled) */
     show("Order status", "Payment not completed", [
       el("p", "lead", "Your payment wasn\u2019t completed \u2014 for example the card was declined or the payment window was closed. You have not been charged. Your cart is still saved."),
-      link("index.html#/cart", "Back to cart and try again", "btn solid"), contactLine()]);
+      link("/cart/", "Back to cart and try again", "btn solid"), contactLine()]);
     return true;
   }
   return false; /* still processing */
@@ -152,11 +152,11 @@ function showPendingFinal(o){
   show("Order status", "Payment pending", [
     el("p", "lead", "We haven’t received confirmation of your payment yet. This can take a few minutes with bank transfers or if you closed the payment page early."),
     el("p", null, "Please don’t pay a second time. If money left your account, you can refresh this page in a few minutes to check the result."),
-    num, contactLine(), link("index.html#/cart", "Back to cart", "btn")]);
+    num, contactLine(), link("/cart/", "Back to cart", "btn")]);
 }
 function showProblem(msg){
   show("Order status", "We couldn’t check this order", [
-    el("p", "lead", msg), contactLine(), link("index.html", "Back to ROBAT", "btn")]);
+    el("p", "lead", msg), contactLine(), link("/", "Back to ROBAT", "btn")]);
 }
 
 function check(){

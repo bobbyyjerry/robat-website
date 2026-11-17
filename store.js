@@ -246,7 +246,7 @@ function renderNav(){
         '<button type="button" data-cur="USD" aria-pressed="' + (currency === "USD") + '">USD</button>' +
         '<button type="button" data-cur="NGN" aria-pressed="' + (currency === "NGN") + '">NGN</button></div>';
     }
-    html += '<a href="#/cart" class="cart-link" aria-label="Cart, ' + n + (n === 1 ? " item" : " items") + '">Cart<span class="cart-count" aria-hidden="true">' + n + '</span></a>';
+    html += '<a href="/cart/" class="cart-link" aria-label="Cart, ' + n + (n === 1 ? " item" : " items") + '">Cart<span class="cart-count" aria-hidden="true">' + n + '</span></a>';
     if(el.dataset.sig !== html){ el.innerHTML = html; el.dataset.sig = html; }
   });
 }
@@ -369,7 +369,7 @@ document.addEventListener("submit", function(e){
   if(msg2){
     msg2.classList.remove("is-error");
     msg2.textContent = "Added to your cart. ";
-    var a = document.createElement("a"); a.href = "#/cart"; a.className = "link"; a.textContent = "View cart";
+    var a = document.createElement("a"); a.href = "/cart/"; a.className = "link"; a.textContent = "View cart";
     msg2.appendChild(a);
   }
 });
@@ -379,7 +379,7 @@ function renderCart(el){
   if(S.status === "idle" || S.status === "loading"){ el.innerHTML = '<p class="of-note" role="status">Loading your cart…</p>'; return; }
   if(S.status === "error"){ el.innerHTML = '<p class="of-note" role="status">We couldn’t load prices right now. Please refresh the page.</p>'; return; }
   if(!cart.length){
-    el.innerHTML = '<p class="lead">Your cart is empty.</p><p style="margin-top:20px;"><a href="#/shop" class="btn solid">Shop GENERA</a></p>';
+    el.innerHTML = '<p class="lead">Your cart is empty.</p><p style="margin-top:20px;"><a href="/shop/" class="btn solid">Shop GENERA</a></p>';
     return;
   }
   var t = cartTotals(null), html = '<ul class="cart-lines">';
@@ -397,11 +397,11 @@ function renderCart(el){
   html += '<div class="cart-total"><span>Subtotal</span><strong>' + esc(t.allOk ? subtotalDisplay(t) : "—") + '</strong></div>';
   html += '<p class="of-note">Delivery fee is calculated at checkout from your delivery state. You pay in Naira (₦).</p>';
   if(checkoutOpen() && t.allOk){
-    html += '<p style="margin-top:22px;"><a href="#/checkout" class="btn solid block">Go To Checkout</a></p>';
+    html += '<p style="margin-top:22px;"><a href="/checkout/" class="btn solid block">Go To Checkout</a></p>';
   } else if(!checkoutOpen()){
     html += '<p class="of-note" role="status">Ordering opens soon.</p>';
   }
-  html += '<p style="margin-top:14px;"><a href="#/shop" class="link">Continue shopping</a></p>';
+  html += '<p style="margin-top:14px;"><a href="/shop/" class="link">Continue shopping</a></p>';
   el.innerHTML = html;
 }
 document.addEventListener("change", function(e){
@@ -417,8 +417,8 @@ document.addEventListener("click", function(e){
 function renderCheckoutIfNeeded(el){
   if(S.status === "idle" || S.status === "loading"){ el.innerHTML = '<p class="of-note" role="status">Loading checkout…</p>'; return; }
   if(S.status === "error"){ el.innerHTML = '<p class="of-note" role="status">We couldn’t load checkout right now. Please refresh the page.</p>'; return; }
-  if(!cart.length){ el.innerHTML = '<p class="lead">Your cart is empty.</p><p style="margin-top:20px;"><a href="#/shop" class="btn solid">Shop GENERA</a></p>'; delete el.dataset.built; return; }
-  if(!checkoutOpen()){ el.innerHTML = '<p class="lead" role="status">Ordering opens soon.</p><p style="margin-top:20px;"><a href="#/cart" class="btn">Back to cart</a></p>'; delete el.dataset.built; return; }
+  if(!cart.length){ el.innerHTML = '<p class="lead">Your cart is empty.</p><p style="margin-top:20px;"><a href="/shop/" class="btn solid">Shop GENERA</a></p>'; delete el.dataset.built; return; }
+  if(!checkoutOpen()){ el.innerHTML = '<p class="lead" role="status">Ordering opens soon.</p><p style="margin-top:20px;"><a href="/cart/" class="btn">Back to cart</a></p>'; delete el.dataset.built; return; }
   if(el.dataset.built === "1"){ renderSummary(el); return; }
   el.dataset.built = "1";
   var states = S.zones.map(function(z){ return '<option value="' + esc(z.state) + '">' + esc(z.state) + '</option>'; }).join("");
@@ -437,7 +437,7 @@ function renderCheckoutIfNeeded(el){
         '<div class="of-field"><label for="co-state">State</label><select id="co-state" name="state" autocomplete="address-level1" required><option value="">Select state</option>' + states + '</select></div></div>' +
         '<div class="of-field"><label for="co-notes">Delivery notes (optional)</label><textarea id="co-notes" name="notes" rows="2" maxlength="300"></textarea></div>' +
       '</fieldset>' +
-      '<div class="of-field of-consent"><label><input type="checkbox" name="terms" id="co-terms"><span>I have read and agree to the <a class="link" href="#/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a class="link" href="#/privacy" target="_blank" rel="noopener">Privacy Policy</a>, <a class="link" href="#/shipping-policy" target="_blank" rel="noopener">Shipping Policy</a> and <a class="link" href="#/returns-policy" target="_blank" rel="noopener">Returns &amp; Refunds Policy</a>, and I understand this is a preorder and delivery timelines will be confirmed after my order.</span></label></div>' +
+      '<div class="of-field of-consent"><label><input type="checkbox" name="terms" id="co-terms"><span>I have read and agree to the <a class="link" href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a class="link" href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>, <a class="link" href="/shipping-policy/" target="_blank" rel="noopener">Shipping Policy</a> and <a class="link" href="/returns-policy/" target="_blank" rel="noopener">Returns &amp; Refunds Policy</a>, and I understand this is a preorder and delivery timelines will be confirmed after my order.</span></label></div>' +
       '<div><button type="submit" class="btn solid block" id="co-pay">Pay Now</button>' +
       '<p class="of-note">You will be taken to Paystack’s secure page to pay by card, bank transfer or USSD. ROBAT never sees or stores your card details.</p>' +
       '<p class="of-msg" id="co-status" role="status" aria-live="polite"></p></div>' +
@@ -500,7 +500,7 @@ function uuid(){
   return "k" + Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 }
 function orderStatusUrl(number, token){
-  return "order-status.html?o=" + encodeURIComponent(number) + "&t=" + encodeURIComponent(token);
+  return "/order-status.html?o=" + encodeURIComponent(number) + "&t=" + encodeURIComponent(token);
 }
 document.addEventListener("submit", function(e){
   if(!e.target || e.target.id !== "checkout-form"){ return; }
@@ -770,7 +770,7 @@ function pageCart(){
     '<section style="padding-top:24px;"><div class="wrap"><div id="store-cart" style="max-width:860px;"></div></div></section>';
 }
 function pageCheckout(){
-  return '<section class="article-hero"><div class="wrap"><a href="#/cart" class="link" style="margin-bottom:20px;display:inline-block;">&larr; Cart</a><h1>CHECKOUT</h1></div></section>' +
+  return '<section class="article-hero"><div class="wrap"><a href="/cart/" class="link" style="margin-bottom:20px;display:inline-block;">&larr; Cart</a><h1>CHECKOUT</h1></div></section>' +
     '<section style="padding-top:24px;"><div class="wrap"><div id="store-checkout"></div></div></section>';
 }
 function productPanelHTML(slug){

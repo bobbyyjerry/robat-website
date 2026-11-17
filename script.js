@@ -9,8 +9,8 @@
    backgrounds (nav, footer); cream variant for the dark hero
    watermark.
    ============================================================ */
-var MARK_BLACK = "images/logo-black.png";
-var MARK_CREAM = "images/logo-cream.png";
+var MARK_BLACK = "/images/logo-black.png";
+var MARK_CREAM = "/images/logo-cream.png";
 
 var RELEASE = ROBAT_CONFIG.launch;
 var PREORDER_START = Date.parse(RELEASE.preorderOpensAt);
@@ -27,20 +27,20 @@ var preorderCountdownTimeout;
    photography exists; slots without a matching photo keep the
    gradient placeholder system.
    ============================================================ */
-var PHOTO_HOME_HERO = "images/home-hero.jpg";
-var PHOTO_BRAND_CAMPAIGN = "images/brand-campaign.jpg";
-var PHOTO_EDITORIAL_TRAINING = "images/editorial-training.jpg";
-var PHOTO_EDITORIAL_LIFESTYLE = "images/editorial-lifestyle.jpg";
-var PHOTO_ABOUT_HERO = "images/about-hero.jpg";
-var PHOTO_ABOUT_PEOPLE = "images/about-people.jpg";
-var PHOTO_ABOUT_PROGRESS = "images/about-progress.jpg";
-var PHOTO_SHORT_FRONT = "images/short-front.jpg";
-var PHOTO_SHORT_BACK = "images/short-back.jpg";
-var PHOTO_SHORT_WORN = "images/short-worn.jpg";
-var PHOTO_SHIRT_WORN = "images/shirt-worn.jpg";
-var PHOTO_SHIRT_FRONT = "images/shirt-front.jpg";
-var PHOTO_SHIRT_BACK = "images/shirt-back.jpg";
-var PHOTO_FULL_OUTFIT = "images/full-outfit.jpg";
+var PHOTO_HOME_HERO = "/images/home-hero.jpg";
+var PHOTO_BRAND_CAMPAIGN = "/images/brand-campaign.jpg";
+var PHOTO_EDITORIAL_TRAINING = "/images/editorial-training.jpg";
+var PHOTO_EDITORIAL_LIFESTYLE = "/images/editorial-lifestyle.jpg";
+var PHOTO_ABOUT_HERO = "/images/about-hero.jpg";
+var PHOTO_ABOUT_PEOPLE = "/images/about-people.jpg";
+var PHOTO_ABOUT_PROGRESS = "/images/about-progress.jpg";
+var PHOTO_SHORT_FRONT = "/images/short-front.jpg";
+var PHOTO_SHORT_BACK = "/images/short-back.jpg";
+var PHOTO_SHORT_WORN = "/images/short-worn.jpg";
+var PHOTO_SHIRT_WORN = "/images/shirt-worn.jpg";
+var PHOTO_SHIRT_FRONT = "/images/shirt-front.jpg";
+var PHOTO_SHIRT_BACK = "/images/shirt-back.jpg";
+var PHOTO_FULL_OUTFIT = "/images/full-outfit.jpg";
 
 /* ============================================================
    VISUAL PLACEHOLDER SYSTEM
@@ -151,10 +151,6 @@ var ARTICLES = [
     ]
   }
 ];
-function getArticle(slug){
-  for(var i=0;i<ARTICLES.length;i++){ if(ARTICLES[i].slug === slug) return ARTICLES[i]; }
-  return null;
-}
 
 /* ============================================================
    PILLARS — People / Progress / Purpose, each its own page
@@ -191,10 +187,6 @@ var PILLARS = [
     ]
   }
 ];
-function getPillar(slug){
-  for(var i=0;i<PILLARS.length;i++){ if(PILLARS[i].slug === slug) return PILLARS[i]; }
-  return null;
-}
 
 /* ============================================================
    VALUES — Six Values, No Exceptions, each its own page
@@ -255,10 +247,6 @@ var VALUES = [
     ]
   }
 ];
-function getValue(slug){
-  for(var i=0;i<VALUES.length;i++){ if(VALUES[i].slug === slug) return VALUES[i]; }
-  return null;
-}
 
 /* ============================================================
    PROFILES — Who It's For, each its own page
@@ -301,10 +289,6 @@ var PROFILES = [
     ]
   }
 ];
-function getProfile(slug){
-  for(var i=0;i<PROFILES.length;i++){ if(PROFILES[i].slug === slug) return PROFILES[i]; }
-  return null;
-}
 
 /* ============================================================
    ENGINEERED ITEMS — Fabric / Fit / Construction / Function /
@@ -366,10 +350,6 @@ var ENGINEERED_ITEMS = [
     ]
   }
 ];
-function getEngineeredItem(slug){
-  for(var i=0;i<ENGINEERED_ITEMS.length;i++){ if(ENGINEERED_ITEMS[i].slug === slug) return ENGINEERED_ITEMS[i]; }
-  return null;
-}
 
 /* ============================================================
    FAQS — every FAQ question is its own page
@@ -439,10 +419,6 @@ var FAQS = [
     ]
   }
 ];
-function getFaq(slug){
-  for(var i=0;i<FAQS.length;i++){ if(FAQS[i].slug === slug) return FAQS[i]; }
-  return null;
-}
 
 /* ============================================================
    PRODUCTS — GENERA, ROBAT's first release
@@ -517,98 +493,90 @@ var PRODUCTS = [
     ]
   }
 ];
-function getProduct(slug){
-  for(var i=0;i<PRODUCTS.length;i++){ if(PRODUCTS[i].slug === slug) return PRODUCTS[i]; }
-  return null;
-}
 
 /* ============================================================
    ROUTER
    ============================================================ */
-function currentRoute(){
-  var h = location.hash.replace(/^#/, "") || "/";
-  return h;
+var pages = Object.create(null);
+function addPage(route, title, description, template, noindex){
+  pages[route] = { title: "ROBAT — " + title, description: description, template: template, noindex: !!noindex };
+}
+function addSection(prefix, entries, titleKey, descriptionKey, template){
+  entries.forEach(function(entry){
+    var description = entry[descriptionKey];
+    if(Array.isArray(description)){ description = description[0]; }
+    addPage(prefix + "/" + entry.slug, entry[titleKey], description, function(){ return template(entry); });
+  });
 }
 
-function setSEO(title, desc){
-  document.title = title ? ("ROBAT — " + title) : "ROBAT — Performance Gymwear";
-  var m = document.querySelector('meta[name="description"]');
-  if(!m){ m = document.createElement("meta"); m.setAttribute("name","description"); document.head.appendChild(m); }
-  m.setAttribute("content", desc || "ROBAT — premium performance gymwear engineered for training and everything beyond it.");
+addPage("/", "Premium Performance Wear | Shop GENERA", HOME_DESCRIPTION, pageHome);
+addPage("/about", "About — People. Progress. Purpose.", "ROBAT's philosophy: People. Progress. Purpose.", pageAbout);
+addPage("/engineered", "Engineered", "How ROBAT approaches fabric, fit, construction, function, durability and comfort.", pageEngineered);
+addPage("/journal", "Journal", "Notes on training, fabric and the ROBAT philosophy.", pageJournal);
+addPage("/shop", "Shop", "Shop GENERA, ROBAT's first release — the Performance Shirt and Performance Short.", pageShop);
+addPage("/cart", "Your Cart", "Review the items in your ROBAT cart.", function(){ return RobatStore.pageCart(); }, true);
+addPage("/size-guide", "Size Guide", "ROBAT size guide: shirt and shorts measurements in inches and centimetres for adult, women and youth sizes.", function(){ return RobatStore.pageSizeGuide(); });
+addPage("/track", "Track Your Order", "Check the payment and delivery status of your ROBAT order.", function(){ return RobatStore.pageTrack(); }, true);
+addPage("/checkout", "Checkout", "Secure checkout for your ROBAT order, paid through Paystack.", function(){ return RobatStore.pageCheckout(); }, true);
+addPage("/contact", "Contact", "Get in touch with ROBAT.", pageContact);
+addPage("/genera", "GENERA — Inside The Garment", "The material system behind GENERA, unlocked from the QR code inside your ROBAT garment.", pageGenera);
+addPage("/privacy", "Privacy Policy", "How ROBAT collects, uses and protects your information.", pagePrivacy);
+addPage("/terms", "Terms & Conditions", "The terms that apply to orders placed with ROBAT FIT LTD.", pageTerms);
+addPage("/acceptable-use", "Acceptable Use Policy", "Rules for using the ROBAT website, checkout and order tracking.", pageAcceptableUse);
+addPage("/shipping-policy", "Shipping Policy", "Delivery areas, fees and preorder timelines for ROBAT orders in Nigeria.", pageShippingPolicy);
+addPage("/returns-policy", "Returns & Refunds Policy", "ROBAT's approach to returns and refunds.", pageReturnsPolicy);
+addPage("/accessibility", "Accessibility Statement", "ROBAT's accessibility aims and how to report a barrier.", pageAccessibilityStatement);
+
+addSection("/about", PILLARS, "title", "dek", pagePillar);
+addSection("/engineered", ENGINEERED_ITEMS, "t", "c", pageEngineeredItem);
+addSection("/journal", ARTICLES, "title", "dek", pageArticle);
+addSection("/values", VALUES, "title", "short", pageValue);
+addSection("/for", PROFILES, "title", "short", pageProfile);
+addSection("/faq", FAQS, "q", "body", pageFaq);
+addSection("/shop", PRODUCTS, "name", "short", pageProduct);
+
+function routeFromPath(path){
+  return path.replace(/\/index\.html$/, "/").replace(/\/+$/, "") || "/";
+}
+function pagePath(route){
+  return route === "/" ? "/" : route + "/";
+}
+function canonicalUrl(route){
+  return "https://" + ROBAT_CONFIG.brand.domain + pagePath(route);
+}
+function syncRoute(){
+  // Keep printed QR codes and bookmarks with the old hash paths working.
+  var legacy = /^#\/(?:[a-z0-9-]+(?:\/[a-z0-9-]+)*\/?)?$/.test(location.hash);
+  var route = routeFromPath(legacy ? location.hash.slice(1) : location.pathname);
+  if(legacy || (pages[route] && location.pathname !== pagePath(route))){
+    history.replaceState(history.state, "", pagePath(route) + location.search + (legacy ? "" : location.hash));
+  }
+  if(route !== renderedRoute){
+    renderedRoute = route;
+    render(route);
+  }
+}
+function setSEO(route, page){
+  var url = canonicalUrl(route);
+  document.title = page.title;
+  document.querySelector('link[rel="canonical"]').href = url;
+  document.querySelector('meta[name="description"]').content = page.description;
+  document.querySelector('meta[name="robots"]').content = page.noindex ? "noindex, follow" : "index, follow, max-image-preview:large";
+  document.querySelector('meta[property="og:url"]').content = url;
+  document.querySelector('meta[property="og:title"]').content = page.title;
+  document.querySelector('meta[property="og:description"]').content = page.description;
+  document.querySelector('meta[name="twitter:title"]').content = page.title;
+  document.querySelector('meta[name="twitter:description"]').content = page.description;
 }
 
-function render(){
+var renderedRoute;
+function render(route){
   window.clearTimeout(preorderCountdownTimeout);
   teardownGeneraExperience();
-  var route = currentRoute();
   var app = document.getElementById("app");
-  var html = "";
-  var artMatch = route.match(/^\/journal\/([a-z0-9-]+)$/);
-  var pillarMatch = route.match(/^\/about\/([a-z-]+)$/);
-  var valueMatch = route.match(/^\/values\/([a-z-]+)$/);
-  var profileMatch = route.match(/^\/for\/([a-z-]+)$/);
-  var engItemMatch = route.match(/^\/engineered\/([a-z-]+)$/);
-  var faqMatch = route.match(/^\/faq\/([a-z-]+)$/);
-  var productMatch = route.match(/^\/shop\/([a-z-]+)$/);
-
-  if(route === "/" || route === ""){
-    html = pageHome(); setSEO("Premium Performance Wear | Shop GENERA", HOME_DESCRIPTION);
-  } else if(route === "/about"){
-    html = pageAbout(); setSEO("About — People. Progress. Purpose.", "ROBAT's philosophy: People. Progress. Purpose.");
-  } else if(pillarMatch && getPillar(pillarMatch[1])){
-    var pillar = getPillar(pillarMatch[1]);
-    html = pagePillar(pillar); setSEO(pillar.title, pillar.dek);
-  } else if(route === "/engineered"){
-    html = pageEngineered(); setSEO("Engineered", "How ROBAT approaches fabric, fit, construction, function, durability and comfort.");
-  } else if(engItemMatch && getEngineeredItem(engItemMatch[1])){
-    var engItem = getEngineeredItem(engItemMatch[1]);
-    html = pageEngineeredItem(engItem); setSEO(engItem.t, engItem.c);
-  } else if(route === "/journal"){
-    html = pageJournal(); setSEO("Journal", "Notes on training, fabric and the ROBAT philosophy.");
-  } else if(artMatch && getArticle(artMatch[1])){
-    var art = getArticle(artMatch[1]);
-    html = pageArticle(art); setSEO(art.title, art.dek);
-  } else if(valueMatch && getValue(valueMatch[1])){
-    var val = getValue(valueMatch[1]);
-    html = pageValue(val); setSEO(val.title, val.short);
-  } else if(profileMatch && getProfile(profileMatch[1])){
-    var prof = getProfile(profileMatch[1]);
-    html = pageProfile(prof); setSEO(prof.title, prof.short);
-  } else if(faqMatch && getFaq(faqMatch[1])){
-    var faqItem = getFaq(faqMatch[1]);
-    html = pageFaq(faqItem); setSEO(faqItem.q, faqItem.body[0]);
-  } else if(route === "/shop"){
-    html = pageShop(); setSEO("Shop", "Shop GENERA, ROBAT's first release \u2014 the Performance Shirt and Performance Short.");
-  } else if(productMatch && getProduct(productMatch[1])){
-    var product = getProduct(productMatch[1]);
-    html = pageProduct(product); setSEO(product.name, product.short);
-  } else if(route === "/cart"){
-    html = RobatStore.pageCart(); setSEO("Your Cart", "Review the items in your ROBAT cart.");
-  } else if(route === "/size-guide"){
-    html = RobatStore.pageSizeGuide(); setSEO("Size Guide", "ROBAT size guide: shirt and shorts measurements in inches and centimetres for adult, women and youth sizes.");
-  } else if(route === "/track"){
-    html = RobatStore.pageTrack(); setSEO("Track Your Order", "Check the payment and delivery status of your ROBAT order.");
-  } else if(route === "/checkout"){
-    html = RobatStore.pageCheckout(); setSEO("Checkout", "Secure checkout for your ROBAT order, paid through Paystack.");
-  } else if(route === "/contact"){
-    html = pageContact(); setSEO("Contact", "Get in touch with ROBAT.");
-  } else if(route === "/genera"){
-    html = pageGenera(); setSEO("GENERA \u2014 Inside The Garment", "The material system behind GENERA, unlocked from the QR code inside your ROBAT garment.");
-  } else if(route === "/privacy"){
-    html = pagePrivacy(); setSEO("Privacy Policy", "How ROBAT collects, uses and protects your information.");
-  } else if(route === "/terms"){
-    html = pageTerms(); setSEO("Terms & Conditions", "The terms that apply to orders placed with ROBAT FIT LTD.");
-  } else if(route === "/acceptable-use"){
-    html = pageAcceptableUse(); setSEO("Acceptable Use Policy", "Rules for using the ROBAT website, checkout and order tracking.");
-  } else if(route === "/shipping-policy"){
-    html = pageShippingPolicy(); setSEO("Shipping Policy", "Delivery areas, fees and preorder timelines for ROBAT orders in Nigeria.");
-  } else if(route === "/returns-policy"){
-    html = pageReturnsPolicy(); setSEO("Returns & Refunds Policy", "ROBAT's approach to returns and refunds.");
-  } else if(route === "/accessibility"){
-    html = pageAccessibilityStatement(); setSEO("Accessibility Statement", "ROBAT's accessibility aims and how to report a barrier.");
-  } else {
-    html = pageNotFound(); setSEO("Not Found", "Page not found.");
-  }
+  var page = pages[route] || { title: "ROBAT — Not Found", description: "Page not found.", template: pageNotFound, noindex: true };
+  var html = page.template();
+  setSEO(route, page);
 
   app.innerHTML = navHTML() + "<main id=\"main-content\" tabindex=\"-1\">" + html + "</main>" + footerHTML();
   if(route === "/"){ startPreorderCountdown(app); }
@@ -629,15 +597,15 @@ function render(){
    NAV / FOOTER
    ============================================================ */
 function navHTML(){
-  var route = currentRoute();
+  var route = renderedRoute;
   function a(href, label){
     var active = route === href ? " active" : "";
-    return '<a href="#' + href + '" class="' + active.trim() + '">' + label + '</a>';
+    return '<a href="' + pagePath(href) + '" class="' + active.trim() + '">' + label + '</a>';
   }
   return '' +
   '<a href="#main-content" class="skip-link">Skip to content</a>' +
   '<header id="nav"><div class="wrap row">' +
-    '<a href="#/" class="wordmark"><img class="mark" src="' + MARK_BLACK + '" alt=""><span>ROBAT</span></a>' +
+    '<a href="/" class="wordmark"><img class="mark" src="' + MARK_BLACK + '" alt=""><span>ROBAT</span></a>' +
     '<nav class="nav-links" aria-label="Primary">' + a("/shop","Shop") + a("/about","About") + a("/engineered","Engineered") + a("/journal","Journal") + a("/contact","Contact") + '</nav>' +
     '<div class="nav-right">' +
       (window.RobatStore ? RobatStore.navHTML() : '') +
@@ -645,7 +613,7 @@ function navHTML(){
     '</div>' +
   '</div></header>' +
   '<nav id="mobile-menu" aria-label="Mobile" aria-hidden="true">' +
-    '<a href="#/shop">Shop</a><a href="#/about">About</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a><a href="#/contact">Contact</a><a href="#/cart">Cart</a>' +
+    '<a href="/shop/">Shop</a><a href="/about/">About</a><a href="/engineered/">Engineered</a><a href="/journal/">Journal</a><a href="/contact/">Contact</a><a href="/cart/">Cart</a>' +
   '</nav>';
 }
 
@@ -660,12 +628,12 @@ function footerHTML(){
         '<p class="foot-tagline">Premium Performance Wear</p>' +
         '<p class="lead" style="font-size:13px;margin-top:14px;">People. Progress. Purpose.</p>' +
       '</div>' +
-      '<div><h4>Brand</h4><a href="#/shop">Shop</a><a href="#/size-guide">Size Guide</a><a href="#/about">About ROBAT</a><a href="#/engineered">Engineered</a><a href="#/journal">Journal</a></div>' +
-      '<div><h4>Get In Touch</h4><a href="#/contact">Contact</a><a href="#/track">Track Your Order</a><a href="#/journal">Latest Notes</a></div>' +
+      '<div><h4>Brand</h4><a href="/shop/">Shop</a><a href="/size-guide/">Size Guide</a><a href="/about/">About ROBAT</a><a href="/engineered/">Engineered</a><a href="/journal/">Journal</a></div>' +
+      '<div><h4>Get In Touch</h4><a href="/contact/">Contact</a><a href="/track/">Track Your Order</a><a href="/journal/">Latest Notes</a></div>' +
       '<nav class="foot-policies" aria-labelledby="foot-policies-heading">' +
         '<h4 id="foot-policies-heading">Policies</h4>' +
-        '<a href="#/terms">Terms &amp; Conditions</a><a href="#/shipping-policy">Shipping Policy</a><a href="#/returns-policy">Returns &amp; Refunds Policy</a>' +
-        '<a href="#/acceptable-use">Acceptable Use Policy</a><a href="#/privacy">Privacy Policy</a><a href="#/accessibility">Accessibility Statement</a>' +
+        '<a href="/terms/">Terms &amp; Conditions</a><a href="/shipping-policy/">Shipping Policy</a><a href="/returns-policy/">Returns &amp; Refunds Policy</a>' +
+        '<a href="/acceptable-use/">Acceptable Use Policy</a><a href="/privacy/">Privacy Policy</a><a href="/accessibility/">Accessibility Statement</a>' +
       '</nav>' +
     '</div>' +
     '<div class="foot-legal">' +
@@ -806,7 +774,7 @@ function pageHome(){
       '<h1>ENGINEERED<br>FOR MORE.</h1>' +
       '<p class="hero-sub">Performance built for training. Designed for everything beyond it.</p>' +
       preorderCountdownHTML() +
-      '<div class="hero-ctas"><a href="#/shop" class="btn solid">Explore GENERA</a><a href="#/about" class="btn ghost">Our Philosophy</a><a href="#/engineered" class="btn ghost">Engineered</a></div>' +
+      '<div class="hero-ctas"><a href="/shop/" class="btn solid">Explore GENERA</a><a href="/about/" class="btn ghost">Our Philosophy</a><a href="/engineered/" class="btn ghost">Engineered</a></div>' +
     '</div></div>' +
   '</section>' +
 
@@ -817,16 +785,16 @@ function pageHome(){
   '</div></div></section>' +
 
   '<section class="philosophy"><div class="wrap"><div class="grid">' +
-    '<a href="#/about/people" class="cell reveal"><div class="num">01</div><h3>People</h3><p>The people who train, move and wear ROBAT — and the discipline they show up with.</p></a>' +
-    '<a href="#/about/progress" class="cell reveal"><div class="num">02</div><h3>Progress</h3><p>The constant, unglamorous pursuit of becoming stronger and better, one session at a time.</p></a>' +
-    '<a href="#/about/purpose" class="cell reveal"><div class="num">03</div><h3>Purpose</h3><p>Creating products with intention — nothing added that doesn&#39;t earn its place.</p></a>' +
+    '<a href="/about/people/" class="cell reveal"><div class="num">01</div><h3>People</h3><p>The people who train, move and wear ROBAT — and the discipline they show up with.</p></a>' +
+    '<a href="/about/progress/" class="cell reveal"><div class="num">02</div><h3>Progress</h3><p>The constant, unglamorous pursuit of becoming stronger and better, one session at a time.</p></a>' +
+    '<a href="/about/purpose/" class="cell reveal"><div class="num">03</div><h3>Purpose</h3><p>Creating products with intention — nothing added that doesn&#39;t earn its place.</p></a>' +
   '</div></div></section>' +
 
   '<section><div class="wrap">' +
     '<div class="reveal" style="max-width:70ch;">' +
       '<div class="eyebrow">Engineered</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Built From The Fabric Up</h2>' +
       '<p class="lead" style="margin-top:16px;">Every ROBAT garment starts with how it performs under load, not how it photographs. Fabric, fit and construction, engineered together — read the full approach behind it.</p>' +
-      '<a href="#/engineered" class="link" style="display:inline-block;margin-top:22px;">See The Engineering</a>' +
+      '<a href="/engineered/" class="link" style="display:inline-block;margin-top:22px;">See The Engineering</a>' +
     '</div>' +
   '</div></section>' +
 
@@ -847,19 +815,19 @@ function pageHome(){
       visual({alt:"ROBAT brand campaign photograph.", caption:"BRAND — ROBAT CAMPAIGN", ratio:"4/5", photo:PHOTO_BRAND_CAMPAIGN}) +
       '<div><div class="eyebrow">People. Progress. Purpose.</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">This Is ROBAT</h2>' +
       '<p class="lead" style="margin-top:16px;">A premium performance gymwear brand built around training, movement and progress — for the gym, and for everything after it.</p>' +
-      '<a href="#/about" class="btn ghost" style="margin-top:24px;">About ROBAT</a></div>' +
+      '<a href="/about/" class="btn ghost" style="margin-top:24px;">About ROBAT</a></div>' +
     '</div>' +
   '</div></section>' +
 
   '<section style="padding-top:0;"><div class="wrap">' +
-    '<div class="section-head reveal"><div><div class="eyebrow">Journal</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">Notes From ROBAT</h2></div><a href="#/journal" class="link">All Entries</a></div>' +
+    '<div class="section-head reveal"><div><div class="eyebrow">Journal</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">Notes From ROBAT</h2></div><a href="/journal/" class="link">All Entries</a></div>' +
     '<div class="journal-grid reveal">' + ARTICLES.slice(0,3).map(journalCard).join("") + '</div>' +
   '</div></section>' +
 
   newsletterHTML() +
 
   '<section style="padding:0 0 64px;"><div class="wrap" style="text-align:center;">' +
-    '<a href="#/genera" class="link" style="display:inline-flex; align-items:center; gap:8px; border-bottom:none;">' +
+    '<a href="/genera/" class="link" style="display:inline-flex; align-items:center; gap:8px; border-bottom:none;">' +
       '<span aria-hidden="true" style="color:var(--accent); font-size:10px;">&#9670;</span>' +
       'Scanned The QR Inside Your GENERA Garment? Discover GENERA' +
     '</a>' +
@@ -867,7 +835,7 @@ function pageHome(){
 }
 
 function journalCard(art){
-  return '<a href="#/journal/' + art.slug + '" class="journal-card">' +
+  return '<a href="/journal/' + art.slug + '/" class="journal-card">' +
     visual({tone:art.tone, caption:art.tag}) +
     '<div class="eyebrow">' + art.tag + '</div><h3>' + art.title + '</h3><p>' + art.dek + '</p>' +
     '<span class="link">Read The Note</span>' +
@@ -905,18 +873,18 @@ function pageAbout(){
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="split reveal">' +
       visual({alt:"ROBAT athletes training together.", caption:"TRAINING — ROBAT ATHLETES", photo:PHOTO_ABOUT_PEOPLE}) +
-      '<div><div class="eyebrow">01 — People</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">People</h2><p class="lead" style="margin-top:16px;">ROBAT is built around the people who train — the early mornings, the last set of the day, the quiet discipline in between. Every product starts with how they move, not how it photographs. <a href="#/about/people" class="link" style="margin-left:4px;">Read The People Page</a></p></div>' +
+      '<div><div class="eyebrow">01 — People</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">People</h2><p class="lead" style="margin-top:16px;">ROBAT is built around the people who train — the early mornings, the last set of the day, the quiet discipline in between. Every product starts with how they move, not how it photographs. <a href="/about/people/" class="link" style="margin-left:4px;">Read The People Page</a></p></div>' +
     '</div>' +
   '</div></section>' +
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="split rev reveal">' +
       visual({alt:"Athlete in motion, representing progress in training.", caption:"MOVEMENT — PROGRESS IN TRAINING", photo:PHOTO_ABOUT_PROGRESS}) +
-      '<div><div class="eyebrow">02 — Progress</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Progress</h2><p class="lead" style="margin-top:16px;">Progress is rarely loud. It&#39;s the extra rep, the better form, the slightly heavier plate. ROBAT is built for the version of you that&#39;s still being built. <a href="#/about/progress" class="link" style="margin-left:4px;">Read The Progress Page</a></p></div>' +
+      '<div><div class="eyebrow">02 — Progress</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Progress</h2><p class="lead" style="margin-top:16px;">Progress is rarely loud. It&#39;s the extra rep, the better form, the slightly heavier plate. ROBAT is built for the version of you that&#39;s still being built. <a href="/about/progress/" class="link" style="margin-left:4px;">Read The Progress Page</a></p></div>' +
     '</div>' +
   '</div></section>' +
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="reveal" style="max-width:70ch;">' +
-      '<div class="eyebrow">03 — Purpose</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Purpose</h2><p class="lead" style="margin-top:16px;">Nothing on a ROBAT garment is decoration. Every panel, seam and detail is there because it earns its place. Purpose before polish. <a href="#/about/purpose" class="link" style="margin-left:4px;">Read The Purpose Page</a></p>' +
+      '<div class="eyebrow">03 — Purpose</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Purpose</h2><p class="lead" style="margin-top:16px;">Nothing on a ROBAT garment is decoration. Every panel, seam and detail is there because it earns its place. Purpose before polish. <a href="/about/purpose/" class="link" style="margin-left:4px;">Read The Purpose Page</a></p>' +
     '</div>' +
   '</div></section>' +
 
@@ -932,7 +900,7 @@ function pageAbout(){
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="section-head reveal"><div><div class="eyebrow">What We Hold To</div><h2>Six Values, No Exceptions</h2></div></div>' +
     '<div class="values-grid reveal">' + VALUES.map(function(v){
-      return '<a class="cell" href="#/values/' + v.slug + '"><div class="num">' + v.num + '</div><h4>' + v.title + '</h4><p>' + v.short + '</p></a>';
+      return '<a class="cell" href="/values/' + v.slug + '/"><div class="num">' + v.num + '</div><h4>' + v.title + '</h4><p>' + v.short + '</p></a>';
     }).join("") +
     '</div>' +
   '</div></section>' +
@@ -940,14 +908,14 @@ function pageAbout(){
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="section-head reveal"><div><div class="eyebrow">Who It&#39;s For</div><h2>Built For How You Actually Train</h2></div></div>' +
     '<div class="profiles reveal">' + PROFILES.map(function(p){
-      return '<a class="cell" href="#/for/' + p.slug + '"><div class="eyebrow">' + p.tag + '</div><h4>' + p.title + '</h4><p>' + p.short + '</p></a>';
+      return '<a class="cell" href="/for/' + p.slug + '/"><div class="eyebrow">' + p.tag + '</div><h4>' + p.title + '</h4><p>' + p.short + '</p></a>';
     }).join("") +
     '</div>' +
   '</div></section>' +
 
   '<section><div class="wrap"><div class="reveal" style="text-align:center;max-width:60ch;margin:0 auto;">' +
     '<h2 style="font-size:clamp(1.8rem,4vw,2.8rem);text-transform:uppercase;">Engineered To Match</h2>' +
-    '<a href="#/engineered" class="btn solid" style="margin-top:24px;">See The Engineering</a>' +
+    '<a href="/engineered/" class="btn solid" style="margin-top:24px;">See The Engineering</a>' +
   '</div></div></section>';
 }
 
@@ -971,7 +939,7 @@ function pageEngineered(){
   '<section><div class="wrap">' +
     '<div class="design-rows reveal">' + items.map(function(it, i){
       var n = (i + 1 < 10 ? "0" : "") + (i + 1);
-      return '<a class="design-row" href="#/engineered/' + it.slug + '"><div class="dr-num">' + n + '</div><div><h4>' + it.t + '</h4><p>' + it.c + '</p><span class="link" style="display:inline-block;margin-top:14px;">Read More</span></div></a>';
+      return '<a class="design-row" href="/engineered/' + it.slug + '/"><div class="dr-num">' + n + '</div><div><h4>' + it.t + '</h4><p>' + it.c + '</p><span class="link" style="display:inline-block;margin-top:14px;">Read More</span></div></a>';
     }).join("") + '</div>' +
   '</div></section>' +
 
@@ -986,7 +954,7 @@ function pageEngineered(){
     '<div class="reveal" style="max-width:70ch;">' +
       '<div class="eyebrow">Materials</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Fabric-First, By Design</h2>' +
       '<p class="lead" style="margin-top:16px;">We choose materials before we choose a silhouette. It is a slower way to design a garment, and the only order that produces one which still performs after the newness wears off.</p>' +
-      '<a href="#/journal/fabric-first" class="link" style="display:inline-block;margin-top:22px;">Read Why We Start With Fabric</a>' +
+      '<a href="/journal/fabric-first/" class="link" style="display:inline-block;margin-top:22px;">Read Why We Start With Fabric</a>' +
     '</div>' +
   '</div></section>' +
 
@@ -1001,14 +969,14 @@ function pageEngineered(){
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="section-head reveal"><div><div class="eyebrow">Questions</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">Engineering Principles</h2></div></div>' +
     '<div class="faq reveal">' + FAQS.filter(function(f){ return f.category === "engineered"; }).map(function(f){
-      return '<a class="faq-row" href="#/faq/' + f.slug + '"><span class="q">' + f.q + '</span><span class="arrow">&rarr;</span></a>';
+      return '<a class="faq-row" href="/faq/' + f.slug + '/"><span class="q">' + f.q + '</span><span class="arrow">&rarr;</span></a>';
     }).join("") +
     '</div>' +
   '</div></section>' +
 
   '<section><div class="wrap"><div class="reveal" style="text-align:center;max-width:60ch;margin:0 auto;">' +
     '<h2 style="font-size:clamp(1.8rem,4vw,2.8rem);text-transform:uppercase;">More From ROBAT</h2>' +
-    '<a href="#/about" class="btn solid" style="margin-top:24px;">About ROBAT</a>' +
+    '<a href="/about/" class="btn solid" style="margin-top:24px;">About ROBAT</a>' +
   '</div></div></section>';
 }
 
@@ -1029,7 +997,7 @@ function pageArticle(art){
   var others = ARTICLES.filter(function(a){ return a.slug !== art.slug; });
   return '' +
   '<section class="article-hero"><div class="wrap reveal">' +
-    '<a href="#/journal" class="link" style="margin-bottom:20px;display:inline-block;">&larr; All Entries</a>' +
+    '<a href="/journal/" class="link" style="margin-bottom:20px;display:inline-block;">&larr; All Entries</a>' +
     '<div class="eyebrow tag">Journal &mdash; ' + art.tag + '</div>' +
     '<h1>' + art.title + '</h1>' +
     '<p class="lead dek">' + art.dek + '</p>' +
@@ -1067,7 +1035,7 @@ function pageContact(){
   '<section style="padding-top:0;"><div class="wrap">' +
     '<div class="section-head reveal"><div><div class="eyebrow">Before You Ask</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.4rem);">A Few Common Questions</h2></div></div>' +
     '<div class="faq reveal">' + FAQS.filter(function(f){ return f.category === "contact"; }).map(function(f){
-      return '<a class="faq-row" href="#/faq/' + f.slug + '"><span class="q">' + f.q + '</span><span class="arrow">&rarr;</span></a>';
+      return '<a class="faq-row" href="/faq/' + f.slug + '/"><span class="q">' + f.q + '</span><span class="arrow">&rarr;</span></a>';
     }).join("") +
     '</div>' +
   '</div></section>' +
@@ -1114,14 +1082,14 @@ function pageDetail(opts){
   : '') +
   '<section><div class="wrap"><div class="reveal" style="text-align:center;max-width:60ch;margin:0 auto;">' +
     '<h2 style="font-size:clamp(1.8rem,4vw,2.8rem);text-transform:uppercase;">' + (opts.ctaTitle || "More From ROBAT") + '</h2>' +
-    '<a href="' + (opts.ctaHref || "#/") + '" class="btn solid" style="margin-top:24px;">' + (opts.ctaLabel || "Explore") + '</a>' +
+    '<a href="' + (opts.ctaHref || "/") + '" class="btn solid" style="margin-top:24px;">' + (opts.ctaLabel || "Explore") + '</a>' +
   '</div></div></section>';
 }
 
 function pagePillar(p){
   var others = PILLARS.filter(function(x){ return x.slug !== p.slug; });
   return pageDetail({
-    backHref: "#/about", backLabel: "About ROBAT",
+    backHref: "/about/", backLabel: "About ROBAT",
     eyebrowTag: "Philosophy — " + p.tag,
     title: p.title.toUpperCase(),
     dek: p.dek,
@@ -1130,17 +1098,17 @@ function pagePillar(p){
     body: p.body,
     moreTitle: "The Other Two Pillars",
     more: others.map(function(o){
-      return miniCard({href:"#/about/" + o.slug, tone:o.tone, tag:o.tag, title:o.title, text:o.dek, photo:o.photo});
+      return miniCard({href:pagePath("/about/" + o.slug), tone:o.tone, tag:o.tag, title:o.title, text:o.dek, photo:o.photo});
     }),
     ctaTitle: "See The Full Philosophy",
-    ctaHref: "#/about", ctaLabel: "About ROBAT"
+    ctaHref: "/about/", ctaLabel: "About ROBAT"
   });
 }
 
 function pageValue(v){
   var others = VALUES.filter(function(x){ return x.slug !== v.slug; });
   return pageDetail({
-    backHref: "#/about", backLabel: "About ROBAT",
+    backHref: "/about/", backLabel: "About ROBAT",
     eyebrowTag: "Value " + v.num + " Of 06",
     title: v.title.toUpperCase(),
     dek: v.short,
@@ -1149,17 +1117,17 @@ function pageValue(v){
     body: v.body,
     moreTitle: "The Other Five Values",
     more: others.map(function(o){
-      return miniCard({href:"#/values/" + o.slug, tone:"a", tag:"Value " + o.num, title:o.title, text:o.short});
+      return miniCard({href:pagePath("/values/" + o.slug), tone:"a", tag:"Value " + o.num, title:o.title, text:o.short});
     }),
     ctaTitle: "Six Values, No Exceptions",
-    ctaHref: "#/about", ctaLabel: "See All Values"
+    ctaHref: "/about/", ctaLabel: "See All Values"
   });
 }
 
 function pageProfile(pr){
   var others = PROFILES.filter(function(x){ return x.slug !== pr.slug; });
   return pageDetail({
-    backHref: "#/about", backLabel: "About ROBAT",
+    backHref: "/about/", backLabel: "About ROBAT",
     eyebrowTag: "Who It's For — " + pr.tag,
     title: pr.title.toUpperCase(),
     dek: pr.short,
@@ -1168,17 +1136,17 @@ function pageProfile(pr){
     body: pr.body,
     moreTitle: "The Other Training Profiles",
     more: others.map(function(o){
-      return miniCard({href:"#/for/" + o.slug, tone:"b", tag:o.tag, title:o.title, text:o.short});
+      return miniCard({href:pagePath("/for/" + o.slug), tone:"b", tag:o.tag, title:o.title, text:o.short});
     }),
     ctaTitle: "Built For How You Train",
-    ctaHref: "#/about", ctaLabel: "About ROBAT"
+    ctaHref: "/about/", ctaLabel: "About ROBAT"
   });
 }
 
 function pageEngineeredItem(it){
   var others = ENGINEERED_ITEMS.filter(function(x){ return x.slug !== it.slug; });
   return pageDetail({
-    backHref: "#/engineered", backLabel: "Engineered",
+    backHref: "/engineered/", backLabel: "Engineered",
     eyebrowTag: "Engineering Pillar",
     title: it.t.toUpperCase(),
     dek: it.c,
@@ -1187,15 +1155,15 @@ function pageEngineeredItem(it){
     body: it.body,
     moreTitle: "The Other Engineering Pillars",
     more: others.map(function(o){
-      return miniCard({href:"#/engineered/" + o.slug, tone:o.tone, tag:"Engineered", title:o.t, text:o.c});
+      return miniCard({href:pagePath("/engineered/" + o.slug), tone:o.tone, tag:"Engineered", title:o.t, text:o.c});
     }),
     ctaTitle: "See The Full Approach",
-    ctaHref: "#/engineered", ctaLabel: "Engineered"
+    ctaHref: "/engineered/", ctaLabel: "Engineered"
   });
 }
 
 function productCard(p){
-  return '<a href="#/shop/' + p.slug + '" class="journal-card">' +
+  return '<a href="/shop/' + p.slug + '/" class="journal-card">' +
     visual({tone: "a", caption: p.name.toUpperCase(), photo: p.photo || null}) +
     '<div class="eyebrow">' + p.tag + '</div><h3>' + p.name + '</h3><p>' + p.short + '</p>' +
     '<p class="store-card-price">' + RobatStore.priceTagHTML(p.slug) + '</p>' +
@@ -1221,7 +1189,7 @@ function pageShop(){
     '<div class="reveal" style="max-width:70ch;">' +
       '<div class="eyebrow">Availability</div><h2 style="font-size:clamp(1.8rem,3.4vw,2.6rem);text-transform:uppercase;margin-top:12px;">Limited First Run</h2>' +
       '<p class="lead" style="margin-top:16px;">White and Sand are coming soon. Preorder prices are lower than the original prices. You pay securely online through Paystack, and delivery timelines are confirmed after you order.</p>' +
-      '<a href="#/faq/launch-date" class="link" style="display:inline-block;margin-top:22px;">More On The Launch</a>' +
+      '<a href="/faq/launch-date/" class="link" style="display:inline-block;margin-top:22px;">More On The Launch</a>' +
     '</div>' +
   '</div></section>';
 }
@@ -1230,7 +1198,7 @@ function pageProduct(p){
   var others = PRODUCTS.filter(function(x){ return x.slug !== p.slug; });
   return '' +
   '<section class="article-hero"><div class="wrap reveal">' +
-    '<a href="#/shop" class="link" style="margin-bottom:20px;display:inline-block;">&larr; Shop</a>' +
+    '<a href="/shop/" class="link" style="margin-bottom:20px;display:inline-block;">&larr; Shop</a>' +
     '<div class="eyebrow tag">' + p.tag + '</div>' +
     '<h1>' + p.name.toUpperCase() + '</h1>' +
     '<p class="lead dek">' + p.short + '</p>' +
@@ -1272,13 +1240,13 @@ function pageProduct(p){
 
   '<section><div class="wrap"><div class="reveal" style="text-align:center;max-width:60ch;margin:0 auto;">' +
     '<h2 style="font-size:clamp(1.8rem,4vw,2.8rem);text-transform:uppercase;">Questions Before You Order?</h2>' +
-    '<a href="#/contact" class="btn solid" style="margin-top:24px;">Contact ROBAT</a>' +
+    '<a href="/contact/" class="btn solid" style="margin-top:24px;">Contact ROBAT</a>' +
   '</div></div></section>';
 }
 
 function pageFaq(f){
   var isEng = f.category === "engineered";
-  var backHref = isEng ? "#/engineered" : "#/contact";
+  var backHref = isEng ? "/engineered/" : "/contact/";
   var backLabel = isEng ? "Engineered" : "Contact";
   var others = FAQS.filter(function(x){ return x.slug !== f.slug && x.category === f.category; });
   return pageDetail({
@@ -1290,10 +1258,10 @@ function pageFaq(f){
     body: f.body,
     moreTitle: "More Questions",
     more: others.map(function(o){
-      return miniCard({href:"#/faq/" + o.slug, tone:"a", tag:"FAQ", title:o.q, text:o.body[0]});
+      return miniCard({href:pagePath("/faq/" + o.slug), tone:"a", tag:"FAQ", title:o.q, text:o.body[0]});
     }),
     ctaTitle: "Still Have Questions?",
-    ctaHref: "#/contact", ctaLabel: "Contact ROBAT"
+    ctaHref: "/contact/", ctaLabel: "Contact ROBAT"
   });
 }
 
@@ -1613,13 +1581,13 @@ function pageTerms(){
     legalH2("Prices And Currency") +
     legalP("Prices are shown in US dollars (USD) by default and can be switched to Nigerian Naira (₦). Payment is always taken in Naira. USD prices are converted at an exchange rate set by ROBAT and shown at checkout, which ROBAT may update from time to time. The total in Naira shown on the checkout page just before you pay is the amount you will be charged.") +
     legalH2("Delivery") +
-    legalP("We currently deliver within Nigeria only. Delivery fees depend on your delivery state and are added automatically at checkout. See the <a href=\"#/shipping-policy\">Shipping Policy</a> for the current list.") +
+    legalP("We currently deliver within Nigeria only. Delivery fees depend on your delivery state and are added automatically at checkout. See the <a href=\"/shipping-policy/\">Shipping Policy</a> for the current list.") +
     legalH2("Payment") +
     legalP("Payments are processed by Paystack. Your order is confirmed only after Paystack confirms that payment was successful and ROBAT has verified it; you will see your order number on the confirmation page. Items in your checkout are held for a short time (about 30 minutes) while you pay; if payment is not completed in that time, the hold is released.") +
     legalH2("Returns And Refunds") +
-    legalP("See our <a href=\"#/returns-policy\">Returns &amp; Refunds Policy</a>.") +
+    legalP("See our <a href=\"/returns-policy/\">Returns &amp; Refunds Policy</a>.") +
     legalH2("Using The Site") +
-    legalP("Our <a href=\"#/acceptable-use\">Acceptable Use Policy</a> applies when you browse the site, place an order or use order tracking. See the <a href=\"#/privacy\">Privacy Policy</a> for how we handle your information.") +
+    legalP("Our <a href=\"/acceptable-use/\">Acceptable Use Policy</a> applies when you browse the site, place an order or use order tracking. See the <a href=\"/privacy/\">Privacy Policy</a> for how we handle your information.") +
     legalH2("Governing Law") +
     legalP("These terms are governed by the laws of the Federal Republic of Nigeria. Any dispute will be handled by the courts of Lagos State.")
   );
@@ -1650,7 +1618,7 @@ function pageShippingPolicy(){
     legalP("Delivery fees are shown in Naira and added to your total at checkout when you choose your delivery state. Any delivery times shown by state are estimates. We confirm the delivery timeline after you place your preorder.") +
     RobatStore.shippingHTML() +
     legalH2("Track An Order") +
-    legalP("Use <a href=\"#/track\">Track Your Order</a> with your order number and checkout email. For help with delivery, email " + legalSupportLink() + ".")
+    legalP("Use <a href=\"/track/\">Track Your Order</a> with your order number and checkout email. For help with delivery, email " + legalSupportLink() + ".")
   );
 }
 
@@ -1666,15 +1634,13 @@ function pageAccessibilityStatement(){
   return legalShell("Legal", "Accessibility Statement", '' +
     legalH2("Our Aim") +
     legalP("ROBAT aims to meet WCAG 2.2 Level AA across this site: semantic landmarks and headings, a skip-to-content link, keyboard-operable navigation and forms, visible focus indicators, labelled form fields, live status announcements for form outcomes, and colors chosen to meet 4.5:1 contrast for normal text.") +
-    legalH2("Known Limitations") +
-    legalP("This site currently uses hash-based navigation (URLs like <code>#/shop</code>) rather than fully static per-page URLs, which limits how some assistive tools and search engines index individual pages.") +
     legalH2("Feedback") +
     legalP("If you hit an accessibility barrier anywhere on this site, tell us at <a href=\"mailto:info@robatfit.com\">info@robatfit.com</a> and we'll work to fix it.")
   );
 }
 
 function pageNotFound(){
-  return '<section class="not-found" role="alert"><div class="wrap"><div class="eyebrow">404</div><h1 style="text-transform:uppercase;margin-top:10px;">Page Not Found</h1><p class="lead" style="margin-top:12px;">That page doesn&#39;t exist \u2014 it may have moved or the link may be out of date.</p><a href="#/" class="btn solid" style="margin-top:24px;">Back To ROBAT</a></div></section>';
+  return '<section class="not-found" role="alert"><div class="wrap"><div class="eyebrow">404</div><h1 style="text-transform:uppercase;margin-top:10px;">Page Not Found</h1><p class="lead" style="margin-top:12px;">That page doesn&#39;t exist \u2014 it may have moved or the link may be out of date.</p><a href="/" class="btn solid" style="margin-top:24px;">Back To ROBAT</a></div></section>';
 }
 
 /* ============================================================
@@ -1704,7 +1670,29 @@ function initReveal(){
   els.forEach(function(el){ ROBAT_REVEAL_OBSERVER.observe(el); });
 }
 
-window.addEventListener("hashchange", render);
-render();
+// The static page generator uses the same route list and metadata.
+if(typeof module === "object" && module.exports){
+  module.exports = Object.keys(pages).map(function(route){
+    var page = pages[route];
+    return { path:pagePath(route), url:canonicalUrl(route), title:page.title, description:page.description, noindex:page.noindex };
+  });
+  return;
+}
+
+document.addEventListener("click", function(e){
+  if(e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey){ return; }
+  var a = e.target.closest && e.target.closest("a[href]");
+  if(!a || a.origin !== location.origin || a.hash || a.hasAttribute("download") || (a.target && a.target !== "_self")){ return; }
+  var route = routeFromPath(a.pathname);
+  if(!pages[route]){ return; }
+  e.preventDefault();
+  var next = pagePath(route) + a.search;
+  if(next === location.pathname + location.search + location.hash){ return; }
+  history.pushState(null, "", next);
+  syncRoute();
+});
+window.addEventListener("popstate", syncRoute);
+window.addEventListener("hashchange", syncRoute);
+syncRoute();
 
 })();
