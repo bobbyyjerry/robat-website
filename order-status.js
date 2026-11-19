@@ -92,6 +92,7 @@ function receipt(o){
 }
 function render(o, gateway){
   if(o.payment_status === "paid"){
+    if(window.RobatAnalytics){ RobatAnalytics.purchase(o); }
     try { window.localStorage.removeItem("robat_cart_v1"); window.sessionStorage.removeItem("robat_checkout_key"); window.sessionStorage.removeItem("robat_checkout_details"); } catch(e){}
     var nodes = [];
     var underReview = o.stock_review_status === "pending";

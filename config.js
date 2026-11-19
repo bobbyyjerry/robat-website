@@ -69,8 +69,9 @@ var ROBAT_CONFIG = {
   },
 
   analytics: {
-    provider: null, // no analytics is used on this site
-    consentRequired: true // no analytics/tracking script should load before consent while this is true
+    ga4MeasurementId: "G-C7V7VVRZ6J",
+    clarityProjectId: "zg5220pqhq",
+    consentRequired: true
   }
 };
 

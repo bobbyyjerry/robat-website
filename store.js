@@ -226,7 +226,23 @@ function refreshAll(){
   var k = document.getElementById("store-checkout"); if(k && !checkoutBusy){ renderCheckoutIfNeeded(k); }
   document.querySelectorAll("[data-store-policy]").forEach(renderPolicy);
   document.querySelectorAll("[data-store-shipping]").forEach(renderShipping);
+  measureStore();
 }
+function measureStore(){
+  var tracking = window.RobatAnalytics;
+  if(!tracking || S.status !== "ready" || rate() <= 0){ return; }
+  var match = location.pathname.match(/^\/shop\/([a-z0-9-]+)\/?$/);
+  var p = match && S.products[match[1]];
+  if(p){ tracking.viewItem({ slug:p.slug, price:unitNgn(p), qty:1 }); }
+  if(document.getElementById("checkout-form")){
+    var totals = cartTotals("");
+    var items = totals.infos.filter(function(info){ return info.ok; }).map(function(info){
+      return { slug:info.p.slug, color:info.line.color, size:info.line.size, qty:info.line.qty, price:info.unitNgn };
+    });
+    if(items.length){ tracking.checkout(items, totals.subtotalNgn); }
+  }
+}
+document.addEventListener("robat:analytics-ready", measureStore);
 function mount(root){
   root = root || document;
   var k = document.getElementById("store-checkout"); if(k){ delete k.dataset.built; }
@@ -364,6 +380,9 @@ document.addEventListener("submit", function(e){
   var left = p.stock[color + "|" + size] || 0;
   if(already + qty > left){ say(left < 1 ? "Sorry, that size just sold out." : "Only " + left + " left in this size" + (already ? " (you already have " + already + " in your cart)." : "."), true); return; }
   addToCart(slug, color, size, qty);
+  if(window.RobatAnalytics){
+    RobatAnalytics.added({ slug:slug, color:color, size:size, qty:qty, price:unitNgn(p) }, isPreorder(p));
+  }
   /* addToCart re-renders the panel, so look the message line up again */
   var msg2 = panel.querySelector("[data-msg]");
   if(msg2){

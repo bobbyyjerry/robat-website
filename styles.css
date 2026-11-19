@@ -606,3 +606,12 @@
 .sg-how-card p{margin:4px 0 0; font-size:13.5px; color:var(--paper-dim); line-height:1.5;}
 .sg-foot{margin:0;}
 @media (prefers-reduced-motion:reduce){ .sg-card{transition:none;} }
+
+/* Optional analytics controls use the existing site colours and buttons. */
+#analytics-consent{position:fixed;bottom:18px;left:18px;right:18px;max-width:660px;margin:auto;z-index:1100;padding:20px;background:var(--ink);color:var(--paper);border:1px solid var(--hairline-strong);box-shadow:0 4px 24px rgba(43,32,19,.15);}
+#analytics-consent p{margin:0 0 14px;font-size:14px;line-height:1.6;}
+#analytics-consent a{text-decoration:underline;text-underline-offset:3px;}
+#analytics-consent>div{display:flex;flex-wrap:wrap;gap:12px;}
+#analytics-consent .btn{padding:10px 16px;white-space:normal;}
+.analytics-preferences{font:inherit;color:inherit;background:none;border:0;padding:8px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+@media print{#analytics-consent,.analytics-preferences{display:none;}}

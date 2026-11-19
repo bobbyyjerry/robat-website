@@ -582,6 +582,7 @@ function render(route){
   if(route === "/"){ startPreorderCountdown(app); }
   wireNav();
   wireNewsletterForms();
+  if(window.RobatAnalytics){ RobatAnalytics.page(); }
   if(window.RobatStore){ RobatStore.mount(app); }
   window.scrollTo(0,0);
   initReveal();
@@ -637,6 +638,7 @@ function footerHTML(){
       '</nav>' +
     '</div>' +
     '<div class="foot-legal">' +
+      '<button type="button" class="analytics-preferences" data-analytics-preferences>Analytics preferences</button>' +
       '<p class="foot-copy">&copy; ' + new Date().getFullYear() + ' ' + (brand.legalName || 'ROBAT') + '. All rights reserved.</p>' +
       (regNo ? '<p class="foot-reg">Registered in Nigeria <span class="foot-sep" aria-hidden="true">|</span> CAC RC: ' + regNo + '</p>' : '') +
     '</div>' +
@@ -712,7 +714,7 @@ function newsletterHTML(){
   '<section><div class="wrap"><div class="newsletter reveal"><div class="inner">' +
     '<h2>Stay Close To The Build</h2>' +
     '<p>This list is for occasional notes when the engineering, the philosophy, or the Journal moves forward \u2014 no spam, and you can ask to be removed at any time by emailing us.</p>' +
-    '<form class="newsletter-form"><label class="visually-hidden" for="newsletter-email">Email address</label><input id="newsletter-email" type="email" placeholder="you@email.com" required><button class="btn" type="submit">Notify Me</button></form>' +
+    '<form class="newsletter-form" data-clarity-mask="true"><label class="visually-hidden" for="newsletter-email">Email address</label><input id="newsletter-email" type="email" placeholder="you@email.com" required><button class="btn" type="submit">Notify Me</button></form>' +
     '<div class="newsletter-msg form-status" role="status" aria-live="polite"></div>' +
   '</div></div></div></section>';
 }
@@ -1562,9 +1564,12 @@ function pagePrivacy(){
     legalH2("Why We Collect It") +
     legalP("We use order information to process and deliver your order, confirm your payment, contact you about it, keep a record of the sale, and prevent fraud and abuse. Order tracking uses your order number and the email address you used at checkout.") +
     legalH2("Who Handles It") +
-    legalP("Paystack processes your payment under its own terms and privacy notice. Order records are stored with our database provider, Supabase. Our website is hosted on GitHub Pages. Our website fonts are provided by Google Fonts. When receipt emails are enabled, they are sent through Resend. Emails you send us are handled by our email provider, Namecheap Private Email. No analytics or tracking scripts run on this site.") +
+    legalP("Paystack processes your payment under its own terms and privacy notice. Order records are stored with our database provider, Supabase. Our website is hosted on GitHub Pages. Our website fonts are provided by Google Fonts. When receipt emails are enabled, they are sent through Resend. Emails you send us are handled by our email provider, Namecheap Private Email.") +
     legalH2("Cookies And Browser Storage") +
-    legalP("The ROBAT site does not set its own cookies. Your browser remembers your cart and chosen currency between visits. Your checkout details stay in the current browser tab and are cleared when the tab closes or you reach the page confirming payment. You can clear this information in your browser settings.") +
+    legalP("Your browser remembers your cart and chosen currency between visits. Your checkout details stay in the current browser tab and are cleared when the tab closes or you reach the page confirming payment. You can clear this information in your browser settings.") +
+    legalH2("Optional Analytics") +
+    legalP("With your permission, Google Analytics 4 measures page visits, referral sources, product views, shopping actions and purchases after payment is verified. Microsoft Clarity provides session recordings and heatmaps for public browsing pages. Recordings are excluded from checkout, order tracking, order receipts and Admin. We use analytics to understand website performance and improve the shopping experience.") +
+    legalP("Analytics cookies and browser storage remember visits and your preference. Purchase measurement includes an order reference, item details, currency and amounts. Customer names, email addresses, phone numbers, delivery addresses and private order-link tokens are excluded from the events we send. You can allow or decline analytics, or change your choice using Analytics preferences in the footer.") +
     legalH2("Your Rights") +
     legalP("You can ask what information we hold about you, ask us to correct it, or ask us to delete it (where we are not required to keep it), by emailing " + legalSupportLink() + ".") +
     legalH2("Contact") +
@@ -1685,6 +1690,7 @@ document.addEventListener("click", function(e){
   if(!a || a.origin !== location.origin || a.hash || a.hasAttribute("download") || (a.target && a.target !== "_self")){ return; }
   var route = routeFromPath(a.pathname);
   if(!pages[route]){ return; }
+  if(window.RobatAnalytics && RobatAnalytics.privateNavigation(a.pathname)){ return; }
   e.preventDefault();
   var next = pagePath(route) + a.search;
   if(next === location.pathname + location.search + location.hash){ return; }
